@@ -1,0 +1,19 @@
+.card-hover {
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.08);
+  border-color: var(--bs-primary) !important;
+}
+
+.cursor-pointer { cursor: pointer; }
+
+.modal-footer-sticky {
+  position: sticky;
+  bottom: -1rem;
+  background: var(--bs-body-bg);
+  padding-top: .75rem;
+}
+
+
