@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { Container, Row, Col, Card, Button, Badge, Modal, Form } from 'react-bootstrap'
-import Header from "../../cost-estimator1/src/components/Header";
+import Header from "./components/Header";
 
 function StepBadge({ number, label, active }) {
   return (
