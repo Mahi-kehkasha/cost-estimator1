@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { Container, Row, Col, Card, Button, Badge, Modal, Form } from 'react-bootstrap'
 
 
@@ -126,19 +126,19 @@ function calcQuantities(projectType, totalArea, floors = 1) {
 
     case "Office":
       return {
-        LivingDiningFlooring: Math.round(totalArea * 150),
-        InteriorPainting: Math.round(totalArea * 25),
-        ExteriorPainting: Math.round(totalArea * 5),
-        Electrical: Math.round(totalArea * 180),
-        FalseCeiling: Math.round(totalArea * 90),
-        GlassPartition: Math.round(totalArea * 100),
-        Windows: Math.round(totalArea * 0.2),
-        MainDoor: Math.round(totalArea / 2000),
-        InternalDoors: Math.round(totalArea / 500),
-        OverheadTank: Math.round(totalArea / 5000),
-        UndergroundSump: Math.round(totalArea / 10000),
-        MainSinkFaucet: Math.round(totalArea / 1000),
-        SanitarywareCPFittings: Math.round(totalArea / 200)
+        LivingDiningFlooring: Math.round(totalArea * 1.0), // Full floor coverage
+        InteriorPainting: Math.round(totalArea * 2.2), // Walls + ceiling
+        ExteriorPainting: Math.round(totalArea * 0.4), // External walls
+        Electrical: Math.round(totalArea * 1.2), // Complete office wiring
+        FalseCeiling: Math.round(totalArea * 0.95), // Almost full coverage
+        GlassPartition: Math.round(totalArea * 0.4), // 40% partition area
+        Windows: Math.round(totalArea * 0.25), // 25% window area
+        MainDoor: Math.ceil(totalArea / 1000), // One main entrance per 1000 sqft
+        InternalDoors: Math.ceil(totalArea / 200), // One door per 200 sqft
+        OverheadTank: Math.ceil(totalArea / 2000), // Larger tanks for office
+        UndergroundSump: Math.ceil(totalArea / 5000), // Bigger sump for office
+        MainSinkFaucet: Math.ceil(totalArea / 500), // One per pantry/washroom
+        SanitarywareCPFittings: Math.ceil(totalArea / 300) // Sets for washrooms
       };
 
     case "Mall":
@@ -223,10 +223,10 @@ function calculateEstimation({ projectType, area, floors, region, quality }) {
       MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.04
     },
     Office: {
-      LivingDiningFlooring: 0.25, InteriorPainting: 0.10, ExteriorPainting: 0.05,
-      Electrical: 0.15, FalseCeiling: 0.12, GlassPartition: 0.15,
-      Windows: 0.08, MainDoor: 0.02, InternalDoors: 0.03,
-      OverheadTank: 0.01, UndergroundSump: 0.01, MainSinkFaucet: 0.01,
+      LivingDiningFlooring: 0.20, InteriorPainting: 0.12, ExteriorPainting: 0.06,
+      Electrical: 0.15, FalseCeiling: 0.10, GlassPartition: 0.12,
+      Windows: 0.10, MainDoor: 0.03, InternalDoors: 0.05,
+      OverheadTank: 0.02, UndergroundSump: 0.02, MainSinkFaucet: 0.01,
       SanitarywareCPFittings: 0.02
     },
     Mall: {
@@ -334,19 +334,40 @@ function getUnitForMaterial(material) {
 }
 
 export default function App() {
+  // State declarations
   const [step, setStep] = useState(1)
   const [selectedProject, setSelectedProject] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [estimate, setEstimate] = useState(null)
+  const [quantityPreset, setQuantityPreset] = useState('Custom')
+  
+  // Preset sqft mappings
+  const presetSqftMap = useMemo(() => ({
+    '2BHK': 900,
+    '3BHK': 1200,
+    '4BHK': 1500,
+    '1200': 1200
+  }), [])
+
+  // Area calculation helpers
+  const getActiveSqft = useCallback((fallbackSqft) => {
+    if (quantityPreset && quantityPreset !== 'Custom') {
+      const presetVal = presetSqftMap[quantityPreset]
+      if (presetVal) return presetVal
+      if (quantityPreset === '1200') return 1200
+    }
+    return fallbackSqft
+  }, [quantityPreset, presetSqftMap])
 
   const projectTypes = useMemo(() => ([
-    { key: 'villa', title: 'Villa', icon: 'bi-house', desc: ' residential building', tags: ['Foundation', 'Structure', 'Finishing'] },
-    { key: 'apartment', title: 'Apartment', icon: 'bi-building', desc: 'Multi-unit residential building', tags: ['Multi-story', 'Common Areas', 'Parking'] },
-    { key: 'office', title: 'Office', icon: 'bi-briefcase', desc: 'Commercial office building', tags: ['Open Plan', 'AC Systems', 'Elevators'] },
-    { key: 'mall', title: 'Mall', icon: 'bi-cart', desc: 'Shopping complex construction', tags: ['Large Spaces', 'Parking', 'Food Court'] },
-    { key: 'road', title: 'Road', icon: 'bi-sign-turn-right', desc: 'Road and infrastructure', tags: ['Asphalt', 'Drainage', 'Signage'] },
-    { key: 'renovation', title: 'Renovation', icon: 'bi-hammer', desc: 'Existing structure renovation', tags: ['Partial Work', 'Upgrades', 'Modernization'] }
+    { key: 'villa', title: 'Villa', icon: 'bi-house', desc: 'Single-family residential building', tags: ['Foundation', 'Structure', 'Finishing'], available: true },
+    { key: 'apartment', title: 'Apartment', icon: 'bi-building', desc: 'Multi-unit residential building', tags: ['Multi-story', 'Common Areas', 'Parking'], available: false },
+    { key: 'office', title: 'Office', icon: 'bi-briefcase', desc: 'Commercial office building', tags: ['Open Plan', 'AC Systems', 'Elevators'], available: false },
+    { key: 'mall', title: 'Mall', icon: 'bi-cart', desc: 'Shopping complex construction', tags: ['Large Spaces', 'Parking', 'Food Court'], available: false },
+    { key: 'road', title: 'Road', icon: 'bi-sign-turn-right', desc: 'Road and infrastructure', tags: ['Asphalt', 'Drainage', 'Signage'], available: false },
+    { key: 'renovation', title: 'Renovation', icon: 'bi-hammer', desc: 'Existing structure renovation', tags: ['Partial Work', 'Upgrades', 'Modernization'], available: false }
   ]), [])
+
 
   // Forms state per project type
   const [villaForm, setVillaForm] = useState({
@@ -401,47 +422,58 @@ export default function App() {
     region: ''
   })
 
-  // Auto-calculation effect
+  // Get project area helper - defined after form states
+  const getProjectArea = useCallback(() => {
+    if (selectedProject === 'villa') return getActiveSqft(Number(villaForm.area || 0))
+    if (selectedProject === 'apartment') return getActiveSqft(Number(apartmentForm.totalArea || 0))
+    if (selectedProject === 'office') return getActiveSqft(Number(officeForm.area || 0))
+    if (selectedProject === 'mall') return getActiveSqft(Number(mallForm.totalArea || 0))
+    if (selectedProject === 'renovation') return getActiveSqft(Number(renoForm.area || 0))
+    return 0
+  }, [selectedProject, villaForm.area, apartmentForm.totalArea, officeForm.area, mallForm.totalArea, renoForm.area, getActiveSqft])
+
+  // Auto-calculation effect with dynamic updates
   useEffect(() => {
-    if (selectedProject && (villaForm.area || apartmentForm.totalArea || officeForm.area || mallForm.totalArea || renoForm.area || roadForm.lengthKm)) {
+    if (selectedProject) {
       let projectData = null;
+      const currentArea = getProjectArea(); // Get the current project area
       
-      if (selectedProject === 'villa' && villaForm.area && villaForm.floors && villaForm.quality && villaForm.region) {
+      if (selectedProject === 'villa' && villaForm.floors && villaForm.quality && villaForm.region) {
         projectData = {
           projectType: 'Villa',
-          area: Number(villaForm.area),
+          area: currentArea,
           floors: Number(villaForm.floors),
           region: villaForm.region,
           quality: villaForm.quality
         };
-      } else if (selectedProject === 'apartment' && apartmentForm.totalArea && apartmentForm.floors && apartmentForm.quality && apartmentForm.region) {
+      } else if (selectedProject === 'apartment' && apartmentForm.floors && apartmentForm.quality && apartmentForm.region) {
         projectData = {
           projectType: 'Apartment',
-          area: Number(apartmentForm.totalArea),
+          area: currentArea,
           floors: Number(apartmentForm.floors),
           region: apartmentForm.region,
           quality: apartmentForm.quality
         };
-      } else if (selectedProject === 'office' && officeForm.area && officeForm.floors && officeForm.region) {
+      } else if (selectedProject === 'office' && officeForm.floors && officeForm.region) {
         projectData = {
           projectType: 'Office',
-          area: Number(officeForm.area),
+          area: currentArea,
           floors: Number(officeForm.floors),
           region: officeForm.region,
           quality: 'Premium' // Default for office
         };
-      } else if (selectedProject === 'mall' && mallForm.totalArea && mallForm.floors && mallForm.quality && mallForm.region) {
+      } else if (selectedProject === 'mall' && mallForm.floors && mallForm.quality && mallForm.region) {
         projectData = {
           projectType: 'Mall',
-          area: Number(mallForm.totalArea),
+          area: currentArea,
           floors: Number(mallForm.floors),
           region: mallForm.region,
           quality: mallForm.quality
         };
-      } else if (selectedProject === 'renovation' && renoForm.area && renoForm.floorsAffected && renoForm.region) {
+      } else if (selectedProject === 'renovation' && renoForm.floorsAffected && renoForm.region) {
         projectData = {
           projectType: 'Office', // Use Office calculation for renovation
-          area: Number(renoForm.area),
+          area: currentArea,
           floors: Number(renoForm.floorsAffected),
           region: renoForm.region,
           quality: 'Premium' // Default for renovation
@@ -457,20 +489,21 @@ export default function App() {
         };
       }
       
-      if (projectData) {
+      if (projectData && projectData.area > 0) {
         const result = calculateEstimation(projectData);
         setEstimate(result);
+      } else {
+        setEstimate(null);
       }
     } else {
       setEstimate(null);
     }
-  }, [selectedProject, villaForm, apartmentForm, officeForm, mallForm, roadForm, renoForm]);
+  }, [selectedProject, villaForm, apartmentForm, officeForm, mallForm, roadForm, renoForm, getProjectArea, quantityPreset]);
 
   // Specifications selections
   const [specSelections, setSpecSelections] = useState({})
   const [specQuantities, setSpecQuantities] = useState({})
   const [packageTier, setPackageTier] = useState('Custom') // Basic | Standard | Premium | Royal | Custom
-  const [quantityPreset, setQuantityPreset] = useState('Custom') // 2BHK | 3BHK | 4BHK | 1200 | Custom
 
   const specTable = useMemo(() => ({
     // Construction Materials
@@ -530,22 +563,7 @@ export default function App() {
 
   const specFeatures = useMemo(() => Object.keys(specTable), [specTable])
 
-  // Preset sqft mappings (can be tuned per product requirements)
-  const presetSqftMap = {
-    '2BHK': 900,
-    '3BHK': 1200,
-    '4BHK': 1500,
-    '1200': 1200
-  }
 
-  const getActiveSqft = (fallbackSqft) => {
-    if (quantityPreset && quantityPreset !== 'Custom') {
-      const presetVal = presetSqftMap[quantityPreset]
-      if (presetVal) return presetVal
-      if (quantityPreset === '1200') return 1200
-    }
-    return fallbackSqft
-  }
 
   const setSpec = (feature, tier, value) => {
     setSpecSelections(prev => ({ ...prev, [feature]: `${tier} - ${value}` }))
@@ -630,14 +648,6 @@ export default function App() {
   }
 
   // ---------- Estimation helpers ----------
-  const getProjectArea = () => {
-    if (selectedProject === 'villa') return getActiveSqft(Number(villaForm.area || 0))
-    if (selectedProject === 'apartment') return getActiveSqft(Number(apartmentForm.totalArea || 0))
-    if (selectedProject === 'office') return getActiveSqft(Number(officeForm.area || 0))
-    if (selectedProject === 'mall') return getActiveSqft(Number(mallForm.totalArea || 0))
-    if (selectedProject === 'renovation') return getActiveSqft(Number(renoForm.area || 0))
-    return 0
-  }
 
   const parseMoney = (text) => {
     if (!text) return { amount: 0, perSqft: false, perBag: false, perKg: false, perCft: false, perPiece: false }
@@ -727,14 +737,34 @@ export default function App() {
             <Row className="g-3 g-md-4">
               {projectTypes.map(p => (
                 <Col md={4} lg={4} key={p.key}>
-                  <Card className="h-100 shadow-sm rounded p-3 border card-hover cursor-pointer" onClick={() => openProjectModal(p.key)}>
+                  <Card 
+                    className={`h-100 shadow-sm rounded p-3 border position-relative ${
+                      p.available 
+                        ? 'card-hover cursor-pointer' 
+                        : 'opacity-75'
+                    }`} 
+                    onClick={p.available ? () => openProjectModal(p.key) : undefined}
+                    style={{ 
+                      cursor: p.available ? 'pointer' : 'not-allowed',
+                      filter: p.available ? 'none' : 'grayscale(0.3)'
+                    }}
+                  >
+                    {!p.available && (
+                      <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 rounded">
+                        <div className="text-center text-white">
+                          <i className="bi bi-clock-history display-4 mb-2"></i>
+                          <div className="fw-bold">Coming Soon</div>
+                          <small>This project type will be available soon</small>
+                        </div>
+                      </div>
+                    )}
                     <Card.Body className="d-flex flex-column align-items-center text-center">
-                      <i className={`bi ${p.icon} display-6 mb-2 text-primary`}></i>
+                      <i className={`bi ${p.icon} display-6 mb-2 ${p.available ? 'text-primary' : 'text-muted'}`}></i>
                       <Card.Title className="h4">{p.title}</Card.Title>
                       <Card.Subtitle className="text-muted mb-3 small">{p.desc}</Card.Subtitle>
                       <div className="d-flex flex-wrap gap-2 justify-content-center">
                         {p.tags.map((t, idx) => (
-                          <span key={idx} className="badge bg-secondary-subtle text-secondary-emphasis border">{t}</span>
+                          <span key={idx} className={`badge ${p.available ? 'bg-secondary-subtle text-secondary-emphasis' : 'bg-light text-muted'} border`}>{t}</span>
                         ))}
                       </div>
                     </Card.Body>
@@ -947,23 +977,44 @@ export default function App() {
                     </div>
                   </div>
                   <div className="d-flex gap-2 ms-3">
-                    {step === 2 && (
-                      <Button 
-                        variant="outline-light"
-                        size="sm"
-                        onClick={() => setStep(3)}
-                      >
-                        Next: Specifications
-                      </Button>
-                    )}
-                    <Button 
-                      variant="outline-primary" 
-                      size="sm" 
-                      onClick={() => window.print()}
-                    >
-                      <i className="bi bi-download me-1"></i>
-                      {step === 4 ? 'Download Report' : 'Download PDF'}
-                    </Button>
+                    {step === 4 ? (
+                      <>
+                        <Button 
+                          variant="outline-secondary" 
+                          size="sm" 
+                          onClick={() => setStep(3)}
+                        >
+                          <i className="bi bi-arrow-left me-1"></i>
+                          Back to Specifications
+                        </Button>
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm" 
+                          onClick={() => window.print()}
+                        >
+                          <i className="bi bi-download me-1"></i>
+                          Download Report
+                        </Button>
+                      </>
+                    ) : step === 2 ? (
+                      <>
+                        <Button 
+                          variant="outline-light"
+                          size="sm"
+                          onClick={() => setStep(3)}
+                        >
+                          Next: Specifications
+                        </Button>
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm" 
+                          onClick={() => window.print()}
+                        >
+                          <i className="bi bi-download me-1"></i>
+                          Download PDF
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               </div>
