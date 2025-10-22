@@ -1,10 +1,10 @@
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 import Header from './components/Header';
-import StepBadge from './components/StepBadge';
-import ProjectCard from './components/ProjectCard';
-import ProjectSpecifications from './components/ProjectSpecifications';
-import EstimatorSummary from './components/EstimatorSummary';
+import Stepper from './containers/Stepper';
+import ProjectTypeSelection from './containers/ProjectTypeSelection';
+import ProjectSpecificationStep from './containers/ProjectSpecificationStep';
+import EstimationSummaryStep from './containers/EstimationSummaryStep';
 import RequirementModal from './components/Modals/RequirementModal';
 import { useProjectState } from './hooks/useProjectState';
 
@@ -36,29 +36,14 @@ export default function App() {
     <div className="bg-body-tertiary min-vh-100 py-4 py-md-5">
       <Container>
         <Header />
-        {/* Stepper */}
-        <Row className="g-3 justify-content-center mb-4 mb-md-5">
-          <Col xs={6} md={3}>
-            <StepBadge number={1} label="Select Your Project Type" active={step === 1} />
-          </Col>
-          <Col xs={6} md={3}>
-            <StepBadge number={2} label="Specify your project" active={step === 2} />
-          </Col>
-          <Col xs={6} md={3}>
-            <StepBadge number={3} label="Estimator Summary" active={step === 3} />
-          </Col>
-        </Row>
+        <Stepper step={step} />
 
         {step === 1 && (
-          <Row className="g-3 g-md-4">
-            {projectTypes.map((p, i) => (
-              <ProjectCard key={i} project={p} onClick={() => openProjectModal(p.key)} />
-            ))}
-          </Row>
+          <ProjectTypeSelection projectTypes={projectTypes} openProjectModal={openProjectModal} />
         )}
 
         {step === 2 && (
-          <ProjectSpecifications
+          <ProjectSpecificationStep
             specFeatures={specFeatures}
             specSelections={specSelections}
             specQuantities={specQuantities}
@@ -68,14 +53,18 @@ export default function App() {
             setSpec={setSpec}
             setQuantity={setQuantity}
             applyTierToAll={applyTierToAll}
+            setPackageTier={setPackageTier}
             onBack={() => setStep(1)}
             onNext={handleEstimate}
-            setPackageTier={setPackageTier}
           />
         )}
 
         {step === 3 && (
-          <EstimatorSummary estimate={estimate} selectedProject={selectedProject} step={step} />
+          <EstimationSummaryStep
+            estimate={estimate}
+            selectedProject={selectedProject}
+            step={step}
+          />
         )}
 
         {showModal && (
