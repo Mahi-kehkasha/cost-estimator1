@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Button, Badge, Modal, Form } from 'react-bootstrap'
+
 
 function StepBadge({ number, label, active }) {
   return (
@@ -19,10 +20,324 @@ const FeatureItem = ({ text }) => (
   </li>
 )
 
+// ---------- Base Prices (Complete List) ----------
+const basePrices = {
+  Cement: 370, // per bag
+  Steel: 79, // per kg
+  Sand: null, // keep null if not provided
+  Bricks: 39, // per piece
+  RedBricks: 13,
+  CeramicWallDado: 70,
+  Windows: 350,
+  InteriorPainting: 55,
+  LivingDiningFlooring: 70,
+  RoomsKitchenFlooring: 50,
+  BalconyFlooring: 60,
+  ParkingTiles: 60,
+  StaircaseFlooring: 70,
+  Electrical: 250,
+  MainSinkFaucet: 2000,
+  SanitarywareCPFittings: 5000,
+  KitchenSink: 4000,
+  MainDoor: 25000,
+  InternalDoors: 8000,
+  BathroomDoors: 4500,
+  PoojaRoomDoor: 18000,
+  WindowGrills: 195,
+  OverheadTank: 8000,
+  UndergroundSump: 100000,
+  StaircaseRailing: 195,
+  ExteriorPainting: 55,
+  MirrorAccessories: 5000
+};
+
+// ---------- Multipliers ----------
+const regionMultipliers = {
+  Davengere: 1.0,
+  Hassan: 1.05,
+  Bangalore: 1.2,
+  Chennai: 1.15,
+};
+
+const qualityMultipliers = {
+  Basic: 1.0,
+  Premium: 1.15,
+  Classic: 1.25,
+  Royale: 1.4,
+};
+
+// ---------- Realistic Quantity Formulas ----------
+function calcQuantities(projectType, totalArea, floors = 1) {
+  const floorMultiplier = floors > 1 ? (1 + (floors - 1) * 0.05) : 1;
+  const steelMultiplier = floors > 1 ? (1 + (floors - 1) * 0.1) : 1;
+
+  switch (projectType) {
+    case "Villa":
+      return {
+        Cement: Math.round(totalArea * 0.4),
+        Steel: Math.round(totalArea * 3.5),
+        Sand: Math.round(totalArea * 0.8),
+        Bricks: Math.round(totalArea * 7.5),
+        InteriorPainting: Math.round(totalArea * 2.2), // walls + ceiling
+        ExteriorPainting: Math.round(totalArea * 0.4), // external walls
+        LivingDiningFlooring: Math.round(totalArea * 0.35), // 35% of total area
+        RoomsKitchenFlooring: Math.round(totalArea * 0.55), // 55% of total area
+        Electrical: Math.round(totalArea * 300), // complete wiring
+        Plumbing: Math.round(totalArea * 250), // complete plumbing
+        Windows: Math.round(totalArea * 0.18), // 18% window area
+        MainDoor: 1, // main entrance
+        InternalDoors: Math.round(totalArea / 180), // one door per 180 sqft
+        BathroomDoors: Math.round(totalArea / 250), // one door per bathroom
+        OverheadTank: Math.ceil(totalArea / 1000), // one tank per 1000 sqft
+        UndergroundSump: 1, // one sump per villa
+        StaircaseRailing: Math.round(totalArea * 0.08), // 8% of total area
+        WindowGrills: Math.round(totalArea * 0.18), // same as window area
+        MainSinkFaucet: Math.ceil(totalArea / 1000), // one per kitchen
+        KitchenSink: Math.ceil(totalArea / 1000), // one per kitchen
+        SanitarywareCPFittings: Math.ceil(totalArea / 350), // one set per bathroom
+        MirrorAccessories: Math.ceil(totalArea / 350) // one set per bathroom
+      };
+
+    case "Apartment":
+      return {
+        Cement: Math.round(totalArea * 0.35 * floorMultiplier),
+        Steel: Math.round(totalArea * 3 * steelMultiplier),
+        Sand: Math.round(totalArea * 0.7),
+        Bricks: Math.round(totalArea * 6),
+        InteriorPainting: Math.round(totalArea * 2.0), // Interior walls + ceiling
+        ExteriorPainting: Math.round(totalArea * 0.3), // External walls
+        LivingDiningFlooring: Math.round(totalArea * 0.35), // Common areas + units
+        RoomsKitchenFlooring: Math.round(totalArea * 0.55), // Bedrooms + kitchen
+        Electrical: Math.round(totalArea * 350), // Complete wiring + common areas
+        Plumbing: Math.round(totalArea * 300), // Complete plumbing + common areas
+        Windows: Math.round(totalArea * 0.15), // Window area per unit
+        MainDoor: Math.ceil(totalArea / 800), // One per apartment unit
+        InternalDoors: Math.ceil(totalArea / 120), // More doors for apartment units
+        BathroomDoors: Math.ceil(totalArea / 180), // One per bathroom
+        OverheadTank: Math.ceil(totalArea / 1500), // Larger tanks for apartments
+        UndergroundSump: Math.ceil(totalArea / 4000), // Bigger sump for apartment
+        StaircaseRailing: Math.round(totalArea * 0.12), // Common staircases
+        WindowGrills: Math.round(totalArea * 0.15), // Same as window area
+        MainSinkFaucet: Math.ceil(totalArea / 400), // One per apartment
+        KitchenSink: Math.ceil(totalArea / 400), // One per apartment
+        SanitarywareCPFittings: Math.ceil(totalArea / 250), // Sets per bathroom
+        MirrorAccessories: Math.ceil(totalArea / 250) // Sets per bathroom
+      };
+
+    case "Office":
+      return {
+        LivingDiningFlooring: Math.round(totalArea * 150),
+        InteriorPainting: Math.round(totalArea * 25),
+        ExteriorPainting: Math.round(totalArea * 5),
+        Electrical: Math.round(totalArea * 180),
+        FalseCeiling: Math.round(totalArea * 90),
+        GlassPartition: Math.round(totalArea * 100),
+        Windows: Math.round(totalArea * 0.2),
+        MainDoor: Math.round(totalArea / 2000),
+        InternalDoors: Math.round(totalArea / 500),
+        OverheadTank: Math.round(totalArea / 5000),
+        UndergroundSump: Math.round(totalArea / 10000),
+        MainSinkFaucet: Math.round(totalArea / 1000),
+        SanitarywareCPFittings: Math.round(totalArea / 200)
+      };
+
+    case "Mall":
+      return {
+        Cement: Math.round(totalArea * 0.5),
+        Steel: Math.round(totalArea * 5),
+        HVAC: Math.round(totalArea * 300),
+        Electrical: Math.round(totalArea * 200),
+        LivingDiningFlooring: Math.round(totalArea * 150),
+        InteriorPainting: Math.round(totalArea * 20),
+        ExteriorPainting: Math.round(totalArea * 10),
+        Windows: Math.round(totalArea * 0.3),
+        MainDoor: Math.round(totalArea / 5000),
+        OverheadTank: Math.round(totalArea / 10000),
+        UndergroundSump: Math.round(totalArea / 20000),
+        MainSinkFaucet: Math.round(totalArea / 2000),
+        SanitarywareCPFittings: Math.round(totalArea / 500)
+      };
+
+    case "Road":
+      const areaSqm = totalArea / 10.764; // Convert sqft to sqm
+      return {
+        Bitumen: Math.round(areaSqm * 60 / 10),
+        Aggregate: Math.round(areaSqm * 1.2 / 10 * 100) / 100,
+        RoadCost: Math.round(areaSqm * 500)
+      };
+
+    default:
+      return {};
+  }
+}
+
+// ---------- Realistic Construction Cost Calculation ----------
+function calculateEstimation({ projectType, area, floors, region, quality }) {
+  const totalArea = area * floors;
+  const regionFactor = regionMultipliers[region] || 1.0;
+  const qualityFactor = qualityMultipliers[quality] || 1.0;
+
+  // Realistic base rates per sqft for different project types
+  const baseRatesPerSqft = {
+    Villa: 1250,        // ₹1,250 per sqft base rate
+    Apartment: 1100,    // ₹1,100 per sqft base rate  
+    Office: 2000,       // ₹2,000 per sqft base rate
+    Mall: 2800,         // ₹2,800 per sqft base rate
+    Road: 500           // ₹500 per sqft base rate
+  };
+
+  const baseRate = baseRatesPerSqft[projectType] || 2500;
+  
+  // Calculate total cost with multipliers applied only once
+  const totalCost = totalArea * baseRate * regionFactor * qualityFactor;
+  const costPerSqft = totalCost / totalArea;
+
+  // Generate realistic material breakdown based on total cost
+  const quantities = calcQuantities(projectType, totalArea, floors);
+  const costDetails = {};
+  const materialGroups = {
+    Structure: [],
+    Finishing: [],
+    Electrical: [],
+    Plumbing: [],
+    Doors: [],
+    Others: []
+  };
+
+  // Calculate material costs as percentages of total cost
+  const materialPercentages = {
+    Villa: {
+      Cement: 0.12, Steel: 0.15, Bricks: 0.08, Sand: 0.05,
+      InteriorPainting: 0.08, ExteriorPainting: 0.03, LivingDiningFlooring: 0.10,
+      RoomsKitchenFlooring: 0.12, Electrical: 0.08, Windows: 0.05,
+      MainDoor: 0.02, InternalDoors: 0.03, BathroomDoors: 0.02,
+      OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.01,
+      MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.03
+    },
+    Apartment: {
+      Cement: 0.10, Steel: 0.12, Bricks: 0.07, Sand: 0.04,
+      InteriorPainting: 0.07, ExteriorPainting: 0.02, LivingDiningFlooring: 0.12,
+      RoomsKitchenFlooring: 0.15, Electrical: 0.10, Windows: 0.06,
+      MainDoor: 0.01, InternalDoors: 0.04, BathroomDoors: 0.03,
+      OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.02,
+      MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.04
+    },
+    Office: {
+      LivingDiningFlooring: 0.25, InteriorPainting: 0.10, ExteriorPainting: 0.05,
+      Electrical: 0.15, FalseCeiling: 0.12, GlassPartition: 0.15,
+      Windows: 0.08, MainDoor: 0.02, InternalDoors: 0.03,
+      OverheadTank: 0.01, UndergroundSump: 0.01, MainSinkFaucet: 0.01,
+      SanitarywareCPFittings: 0.02
+    },
+    Mall: {
+      Cement: 0.08, Steel: 0.10, HVAC: 0.20, Electrical: 0.12,
+      LivingDiningFlooring: 0.15, InteriorPainting: 0.08, ExteriorPainting: 0.05,
+      Windows: 0.10, MainDoor: 0.01, OverheadTank: 0.01,
+      UndergroundSump: 0.01, MainSinkFaucet: 0.01, SanitarywareCPFittings: 0.02
+    },
+    Road: {
+      Bitumen: 0.40, Aggregate: 0.30, RoadCost: 0.30
+    }
+  };
+
+  const percentages = materialPercentages[projectType] || materialPercentages.Villa;
+
+  for (const [item, qty] of Object.entries(quantities)) {
+    const percentage = percentages[item] || 0;
+    if (percentage === 0) continue;
+
+    const materialCost = totalCost * percentage;
+    const baseRate = basePrices[item];
+    const adjustedRate = baseRate ? baseRate * regionFactor * qualityFactor : 0;
+    const calculatedQty = baseRate ? Math.round(materialCost / adjustedRate) : qty;
+
+    const unit = getUnitForMaterial(item);
+    const detail = {
+      material: item,
+      qty: calculatedQty,
+      unit: unit,
+      baseRate: baseRate || 0,
+      adjustedRate: Math.round(adjustedRate * 100) / 100,
+      subtotal: Math.round(materialCost * 100) / 100
+    };
+
+    costDetails[item] = detail;
+    
+    // Group materials for better organization
+    if (['Cement', 'Steel', 'Sand', 'Bricks', 'RedBricks'].includes(item)) {
+      materialGroups.Structure.push(detail);
+    } else if (['InteriorPainting', 'ExteriorPainting', 'LivingDiningFlooring', 'RoomsKitchenFlooring', 'BalconyFlooring', 'ParkingTiles', 'StaircaseFlooring', 'CeramicWallDado'].includes(item)) {
+      materialGroups.Finishing.push(detail);
+    } else if (['Electrical', 'Windows', 'WindowGrills'].includes(item)) {
+      materialGroups.Electrical.push(detail);
+    } else if (['MainSinkFaucet', 'SanitarywareCPFittings', 'KitchenSink', 'OverheadTank', 'UndergroundSump'].includes(item)) {
+      materialGroups.Plumbing.push(detail);
+    } else if (['MainDoor', 'InternalDoors', 'BathroomDoors', 'PoojaRoomDoor'].includes(item)) {
+      materialGroups.Doors.push(detail);
+    } else {
+      materialGroups.Others.push(detail);
+    }
+  }
+
+  return {
+    totalArea,
+    floors,
+    regionFactor,
+    qualityFactor,
+    costDetails,
+    materialGroups,
+    totalCost: Math.round(totalCost * 100) / 100,
+    costPerSqft: Math.round(costPerSqft * 100) / 100,
+    projectType
+  };
+}
+
+// Helper function to get units for materials
+function getUnitForMaterial(material) {
+  const unitMap = {
+    Cement: 'bags',
+    Steel: 'kg',
+    Sand: 'cft',
+    Bricks: 'pcs',
+    RedBricks: 'pcs',
+    Bitumen: 'kg',
+    Aggregate: 'tons',
+    InteriorPainting: 'sqft',
+    ExteriorPainting: 'sqft',
+    LivingDiningFlooring: 'sqft',
+    RoomsKitchenFlooring: 'sqft',
+    BalconyFlooring: 'sqft',
+    ParkingTiles: 'sqft',
+    StaircaseFlooring: 'sqft',
+    CeramicWallDado: 'sqft',
+    Electrical: 'sqft',
+    Windows: 'sqft',
+    WindowGrills: 'sqft',
+    FalseCeiling: 'sqft',
+    GlassPartition: 'sqft',
+    HVAC: 'sqft',
+    Plumbing: 'sqft',
+    StaircaseRailing: 'sqft',
+    MainDoor: 'nos',
+    InternalDoors: 'nos',
+    BathroomDoors: 'nos',
+    PoojaRoomDoor: 'nos',
+    MainSinkFaucet: 'nos',
+    KitchenSink: 'nos',
+    SanitarywareCPFittings: 'nos',
+    OverheadTank: 'nos',
+    UndergroundSump: 'nos',
+    MirrorAccessories: 'nos',
+    RoadCost: 'sqm'
+  };
+  return unitMap[material] || 'nos';
+}
+
 export default function App() {
   const [step, setStep] = useState(1)
   const [selectedProject, setSelectedProject] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [estimate, setEstimate] = useState(null)
 
   const projectTypes = useMemo(() => ([
     { key: 'villa', title: 'Villa', icon: 'bi-house', desc: ' residential building', tags: ['Foundation', 'Structure', 'Finishing'] },
@@ -86,14 +401,80 @@ export default function App() {
     region: ''
   })
 
+  // Auto-calculation effect
+  useEffect(() => {
+    if (selectedProject && (villaForm.area || apartmentForm.totalArea || officeForm.area || mallForm.totalArea || renoForm.area || roadForm.lengthKm)) {
+      let projectData = null;
+      
+      if (selectedProject === 'villa' && villaForm.area && villaForm.floors && villaForm.quality && villaForm.region) {
+        projectData = {
+          projectType: 'Villa',
+          area: Number(villaForm.area),
+          floors: Number(villaForm.floors),
+          region: villaForm.region,
+          quality: villaForm.quality
+        };
+      } else if (selectedProject === 'apartment' && apartmentForm.totalArea && apartmentForm.floors && apartmentForm.quality && apartmentForm.region) {
+        projectData = {
+          projectType: 'Apartment',
+          area: Number(apartmentForm.totalArea),
+          floors: Number(apartmentForm.floors),
+          region: apartmentForm.region,
+          quality: apartmentForm.quality
+        };
+      } else if (selectedProject === 'office' && officeForm.area && officeForm.floors && officeForm.region) {
+        projectData = {
+          projectType: 'Office',
+          area: Number(officeForm.area),
+          floors: Number(officeForm.floors),
+          region: officeForm.region,
+          quality: 'Premium' // Default for office
+        };
+      } else if (selectedProject === 'mall' && mallForm.totalArea && mallForm.floors && mallForm.quality && mallForm.region) {
+        projectData = {
+          projectType: 'Mall',
+          area: Number(mallForm.totalArea),
+          floors: Number(mallForm.floors),
+          region: mallForm.region,
+          quality: mallForm.quality
+        };
+      } else if (selectedProject === 'renovation' && renoForm.area && renoForm.floorsAffected && renoForm.region) {
+        projectData = {
+          projectType: 'Office', // Use Office calculation for renovation
+          area: Number(renoForm.area),
+          floors: Number(renoForm.floorsAffected),
+          region: renoForm.region,
+          quality: 'Premium' // Default for renovation
+        };
+      } else if (selectedProject === 'road' && roadForm.lengthKm && roadForm.widthM && roadForm.region) {
+        const roadArea = Number(roadForm.lengthKm) * Number(roadForm.widthM) * 10.764; // Convert to sqft
+        projectData = {
+          projectType: 'Road',
+          area: roadArea,
+          floors: 1,
+          region: roadForm.region,
+          quality: 'Basic' // Default for road
+        };
+      }
+      
+      if (projectData) {
+        const result = calculateEstimation(projectData);
+        setEstimate(result);
+      }
+    } else {
+      setEstimate(null);
+    }
+  }, [selectedProject, villaForm, apartmentForm, officeForm, mallForm, roadForm, renoForm]);
+
   // Specifications selections
   const [specSelections, setSpecSelections] = useState({})
   const [specQuantities, setSpecQuantities] = useState({})
   const [packageTier, setPackageTier] = useState('Custom') // Basic | Standard | Premium | Royal | Custom
+  const [quantityPreset, setQuantityPreset] = useState('Custom') // 2BHK | 3BHK | 4BHK | 1200 | Custom
 
   const specTable = useMemo(() => ({
     // Construction Materials
-    'Cement': { Basic: '₹350/bag', Standard: '₹380/bag', Premium: '₹420/bag', Royal: '₹450/bag' },
+    'Cement': { Basic: '₹370/bag', Standard: '₹380/bag', Premium: '₹420/bag', Royal: '₹450/bag' },
     'Steel': { Basic: '₹65/kg', Standard: '₹70/kg', Premium: '₹75/kg', Royal: '₹80/kg' },
     'Aggregates (Sand)': { Basic: '₹1,200/cft', Standard: '₹1,300/cft', Premium: '₹1,400/cft', Royal: '₹1,500/cft' },
     'Aggregates (Gravel)': { Basic: '₹1,000/cft', Standard: '₹1,100/cft', Premium: '₹1,200/cft', Royal: '₹1,300/cft' },
@@ -122,7 +503,6 @@ export default function App() {
     
     // Electrical & Plumbing
     'Wiring': { Basic: 'Finolex silver FR or equivalent', Standard: 'Finolex silver FR or equivalent', Premium: 'Finolex silver FR or equivalent', Royal: 'Finolex silver FR or equivalent' },
-    'Switches & Sockets': { Basic: 'Anchor or equivalent', Standard: 'GM or equivalent', Premium: 'Legrand Mylinc', Royal: 'Legrand Myrius / Schneider Unica Pure' },
     'Main Sink Faucet': { Basic: '₹2,000', Standard: '₹2,500', Premium: '₹3,500', Royal: '₹3,500' },
     'Sanitaryware & CP Fittings': { Basic: '₹50,000/1000sqft (Parryware)', Standard: '₹60,000 (Jaquar)', Premium: '₹70,000 (Jaquar)', Royal: '₹80,000 (Kohler)' },
     'Kitchen Sink': { Basic: '₹4,000 (Futura/Carysil)', Standard: '₹6,000', Premium: '₹8,000', Royal: '₹8,000' },
@@ -143,12 +523,29 @@ export default function App() {
     'Exterior Painting': { Basic: 'Asian Primer + Emulsion', Standard: 'Apex / Equivalent', Premium: 'Apex', Royal: 'Apex Ultima' },
     'Mirror & Accessories': { Basic: '₹5,000 till 1000 sqft', Standard: '₹6,000', Premium: '₹7,000', Royal: '₹9,000' },
     
-    // Specifications
-    'Ceiling Height': { Basic: '10 feet', Standard: '10 feet', Premium: '10 feet', Royal: '10 feet' },
+    'Electrical Wiring': { Basic: 'Finolex silver FR or equivalent', Standard: 'Finolex silver FR or equivalent', Premium: 'Finolex silver FR or equivalent', Royal: 'Finolex silver FR or equivalent' },
+    'Switches & Sockets': { Basic: 'Anchor or equivalent', Standard: 'GM or equivalent', Premium: 'Legrand Mylinc', Royal: 'Legrand Myrius / Schneider Unica Pure' },
     'Extras': { Basic: '–', Standard: '–', Premium: 'Solar heater provision', Royal: 'EV Charging, Gas line' }
   }), [])
 
   const specFeatures = useMemo(() => Object.keys(specTable), [specTable])
+
+  // Preset sqft mappings (can be tuned per product requirements)
+  const presetSqftMap = {
+    '2BHK': 900,
+    '3BHK': 1200,
+    '4BHK': 1500,
+    '1200': 1200
+  }
+
+  const getActiveSqft = (fallbackSqft) => {
+    if (quantityPreset && quantityPreset !== 'Custom') {
+      const presetVal = presetSqftMap[quantityPreset]
+      if (presetVal) return presetVal
+      if (quantityPreset === '1200') return 1200
+    }
+    return fallbackSqft
+  }
 
   const setSpec = (feature, tier, value) => {
     setSpecSelections(prev => ({ ...prev, [feature]: `${tier} - ${value}` }))
@@ -234,11 +631,11 @@ export default function App() {
 
   // ---------- Estimation helpers ----------
   const getProjectArea = () => {
-    if (selectedProject === 'villa') return Number(villaForm.area || 0)
-    if (selectedProject === 'apartment') return Number(apartmentForm.totalArea || 0)
-    if (selectedProject === 'office') return Number(officeForm.area || 0)
-    if (selectedProject === 'mall') return Number(mallForm.totalArea || 0)
-    if (selectedProject === 'renovation') return Number(renoForm.area || 0)
+    if (selectedProject === 'villa') return getActiveSqft(Number(villaForm.area || 0))
+    if (selectedProject === 'apartment') return getActiveSqft(Number(apartmentForm.totalArea || 0))
+    if (selectedProject === 'office') return getActiveSqft(Number(officeForm.area || 0))
+    if (selectedProject === 'mall') return getActiveSqft(Number(mallForm.totalArea || 0))
+    if (selectedProject === 'renovation') return getActiveSqft(Number(renoForm.area || 0))
     return 0
   }
 
@@ -254,379 +651,9 @@ export default function App() {
     return { amount, perSqft, perBag, perKg, perCft, perPiece }
   }
 
-  // Quality base rates and region multipliers
-  const qualityRates = {
-    'Basic': 1500,
-    'Premium': 2000,
-    'Classic': 2500,
-    'Royale': 3000
-  }
 
-  const regionMultipliers = {
-    'Davangere': 1.00,
-    'Hassan': 1.05,
-    'Bengaluru (Karnataka)': 1.20,
-    'Chennai (Tamil Nadu)': 1.15,
-    'North': 1.10,
-    'South': 1.08,
-    'East': 1.12,
-    'West': 1.14,
-    'Central': 1.06
-  }
 
-  // Universal calculation function for all project types
-  const calculateAutoEstimate = () => {
-    if (!selectedProject) return null
 
-    const getProjectData = () => {
-      switch(selectedProject) {
-        case 'villa':
-          return {
-            area: Number(villaForm.area || 0),
-            floors: Number(villaForm.floors || 1),
-            bedrooms: Number(villaForm.bedrooms || 0),
-            bathrooms: Number(villaForm.bathrooms || 0),
-            quality: villaForm.quality || 'Basic',
-            region: villaForm.region || 'Central'
-          }
-        case 'apartment':
-          return {
-            area: Number(apartmentForm.totalArea || 0),
-            floors: Number(apartmentForm.floors || 1),
-            bedrooms: Number(apartmentForm.units || 0),
-            bathrooms: Math.ceil((apartmentForm.units || 1) * 1.5),
-            quality: apartmentForm.quality || 'Basic',
-            region: apartmentForm.region || 'Central'
-          }
-        case 'office':
-          return {
-            area: Number(officeForm.area || 0),
-            floors: Number(officeForm.floors || 1),
-            bedrooms: 0,
-            bathrooms: Math.ceil((officeForm.area || 0) / 1500),
-            quality: 'Premium',
-            region: officeForm.region || 'Central'
-          }
-        case 'mall':
-          return {
-            area: Number(mallForm.totalArea || 0),
-            floors: Number(mallForm.floors || 1),
-            bedrooms: 0,
-            bathrooms: Math.ceil((mallForm.totalArea || 0) / 500),
-            quality: mallForm.quality || 'Basic',
-            region: mallForm.region || 'Central'
-          }
-        case 'renovation':
-          return {
-            area: Number(renoForm.area || 0),
-            floors: Number(renoForm.floorsAffected || 1),
-            bedrooms: 0,
-            bathrooms: Math.ceil(renoForm.rooms?.length || 2),
-            quality: 'Classic',
-            region: renoForm.region || 'Central'
-          }
-        case 'road':
-          return {
-            area: Number(roadForm.lengthKm || 0) * Number(roadForm.widthM || 0) * 10.764, // Convert to sqft
-            floors: 1,
-            bedrooms: 0,
-            bathrooms: 0,
-            quality: 'Basic',
-            region: roadForm.region || 'Central'
-          }
-        default:
-          return { area: 0, floors: 1, bedrooms: 0, bathrooms: 0, quality: 'Basic', region: 'Central' }
-      }
-    }
-
-    const projectData = getProjectData()
-    const { area, floors, bedrooms, bathrooms, quality, region } = projectData
-
-    if (area === 0) return null
-
-    const baseRate = qualityRates[quality] || 1500
-    const regionMultiplier = regionMultipliers[region] || 1.00
-    const costPerSqft = baseRate * regionMultiplier
-    const totalCost = area * floors * costPerSqft
-
-    // Calculate materials based on project type
-    let materials = {}
-    
-    switch(selectedProject) {
-      case 'villa':
-        materials = {
-          'Cement': Math.ceil(area * 0.4),
-          'Steel (kg)': Math.ceil(area * 3.5),
-          'Sand (cft)': Math.ceil(area * 0.8),
-          'Bricks': Math.ceil(area * 7.5),
-          'Electrical': Math.round(area * 80),
-          'Plumbing': Math.round(area * 60),
-          'Flooring': Math.round(area * 90)
-        }
-        break
-      
-      case 'apartment':
-        materials = {
-          'Cement': Math.ceil(area * 0.35 * floors),
-          'Steel (kg)': Math.ceil(area * 3 * floors),
-          'Sand (cft)': Math.ceil(area * 0.7 * floors),
-          'Paint': Math.round(area * 20),
-          'Electrical + Plumbing': Math.round(area * 120)
-        }
-        break
-      
-      case 'renovation':
-        materials = {
-          'Flooring': Math.round(area * 150),
-          'Painting': Math.round(area * 25),
-          'Electrical': Math.round(area * 180),
-          'False Ceiling': Math.round(area * 90),
-          'Glass & Partition': Math.round(area * 100)
-        }
-        break
-      
-      case 'mall':
-        materials = {
-          'Cement': Math.ceil(area * 0.5),
-          'Steel (kg)': Math.ceil(area * 5),
-          'HVAC': Math.round(area * 300),
-          'Electrical': Math.round(area * 200),
-          'Plumbing': Math.round(area * 100),
-          'Flooring': Math.round(area * 150)
-        }
-        break
-      
-      case 'road':
-        const roadAreaSqm = area / 10.764 // Convert back to sqm
-        materials = {
-          'Bitumen (kg)': Math.round(roadAreaSqm * 60),
-          'Aggregate (tons)': Math.round(roadAreaSqm * 1.2 * 100) / 100,
-          'Total Road Cost': Math.round(roadAreaSqm * 500)
-        }
-        break
-      
-      default:
-        materials = {}
-    }
-
-    return {
-      projectType: selectedProject,
-      area,
-      floors,
-      bedrooms,
-      bathrooms,
-      quality,
-      region,
-      costPerSqft: Math.round(costPerSqft),
-      totalCost: Math.round(totalCost),
-      materials
-    }
-  }
-
-  const calculateEstimate = () => {
-    const area = getProjectArea()
-    const breakdown = []
-    let total = 0
-    
-    // Get project details for calculations
-    const getProjectDetails = () => {
-      if (selectedProject === 'villa') {
-        return {
-          area: Number(villaForm.area || 0),
-          floors: Number(villaForm.floors || 1),
-          bedrooms: Number(villaForm.bedrooms || 0),
-          bathrooms: Number(villaForm.bathrooms || 0),
-          quality: villaForm.quality || 'Basic'
-        }
-      }
-      if (selectedProject === 'apartment') {
-        return {
-          area: Number(apartmentForm.totalArea || 0),
-          floors: Number(apartmentForm.floors || 1),
-          bedrooms: 0, // Will be calculated per unit
-          bathrooms: 0, // Will be calculated per unit
-          quality: apartmentForm.quality || 'Basic'
-        }
-      }
-      if (selectedProject === 'office') {
-        return {
-          area: Number(officeForm.area || 0),
-          floors: Number(officeForm.floors || 1),
-          bedrooms: 0,
-          bathrooms: Math.ceil((Number(officeForm.floors || 1) * Number(officeForm.area || 0)) / 1500), // 1 toilet per 1500 sqft
-          quality: 'Standard'
-        }
-      }
-      if (selectedProject === 'mall') {
-        return {
-          area: Number(mallForm.totalArea || 0),
-          floors: Number(mallForm.floors || 1),
-          bedrooms: 0,
-          bathrooms: Math.ceil((Number(mallForm.totalArea || 0)) / 500), // 1 toilet per 500 sqft
-          quality: mallForm.quality || 'Basic'
-        }
-      }
-      if (selectedProject === 'renovation') {
-        return {
-          area: Number(renoForm.area || 0),
-          floors: Number(renoForm.floorsAffected || 1),
-          bedrooms: 0,
-          bathrooms: 0,
-          quality: 'Standard'
-        }
-      }
-      return { area: 0, floors: 1, bedrooms: 0, bathrooms: 0, quality: 'Basic' }
-    }
-
-    const projectDetails = getProjectDetails()
-    const { area: projectArea, floors, bedrooms, bathrooms, quality } = projectDetails
-
-    // Calculate quantities based on project specifications
-    const calculateQuantities = (feature, amount, value) => {
-      const userQuantity = Number(specQuantities[feature]) || 0
-      
-      // If user provided quantity, use that
-      if (userQuantity > 0) {
-        return userQuantity
-      }
-
-      // Auto-calculate based on feature type
-      switch (feature) {
-        // Construction Materials
-        case 'Cement':
-          // 1 bag cement per ~1.5 sqft of construction
-          const cementMultiplier = quality === 'Royal' ? 0.8 : quality === 'Premium' ? 0.9 : quality === 'Standard' ? 1.0 : 1.1
-          return Math.ceil((projectArea * floors * cementMultiplier) / 1.5)
-
-        case 'Steel':
-          // 45-65 kg per sqft depending on quality
-          const steelPerSqft = quality === 'Royal' ? 65 : quality === 'Premium' ? 55 : quality === 'Standard' ? 50 : 45
-          return projectArea * floors * steelPerSqft
-
-        case 'Aggregates (Sand)':
-          // 0.3 cft per sqft
-          return Math.ceil(projectArea * floors * 0.3)
-
-        case 'Aggregates (Gravel)':
-          // 0.2 cft per sqft
-          return Math.ceil(projectArea * floors * 0.2)
-
-        case 'Bricks':
-          // 500-600 bricks per sqft depending on quality
-          const brickPerSqft = quality === 'Royal' ? 600 : quality === 'Premium' ? 550 : quality === 'Standard' ? 525 : 500
-          return projectArea * floors * brickPerSqft
-
-        case 'Concrete Blocks':
-          // 15-20 blocks per sqft
-          const blocksPerSqft = quality === 'Royal' ? 20 : quality === 'Premium' ? 18 : quality === 'Standard' ? 16 : 15
-          return projectArea * floors * blocksPerSqft
-
-        // Doors
-        case 'Main Door':
-          return floors // 1 main door per floor
-
-        case 'Internal Doors':
-          if (bedrooms > 0) {
-            return bedrooms + Math.ceil(bedrooms * 0.5) // bedrooms + half for other rooms
-          }
-          return Math.ceil(projectArea / 200) // 1 door per 200 sqft
-
-        case 'Bathroom Doors':
-          return bathrooms || Math.ceil(floors * 1.5) // 1.5 bathrooms per floor avg
-
-        case 'Pooja Room Door':
-          return Math.ceil(floors / 2) // 1 Pooja room every 2 floors
-
-        // Windows & Grills
-        case 'Windows':
-          return Math.ceil(projectArea * floors / 100) // 1 window per 100 sqft
-
-        case 'Window Grills':
-          return Math.ceil(projectArea * floors / 80) // slightly more grills
-
-        // Flooring (per sqft items)
-        case 'Rooms & Kitchen Flooring':
-        case 'Living & Dining Flooring':
-        case 'Balcony Flooring':
-        case 'Parking Tiles':
-        case 'Staircase Flooring':
-          return projectArea * floors
-
-        // Electrical & Plumbing
-        case 'Wiring':
-          return Math.ceil(projectArea * floors * 2) // 2 meters per sqft
-
-        case 'Switches & Sockets':
-          return Math.ceil(projectArea * floors / 15) // 1 switch/socket per 15 sqft
-
-        case 'Main Sink Faucet':
-        case 'Kitchen Sink':
-          return floors || 1
-
-        case 'Sanitaryware & CP Fittings':
-          return bathrooms || Math.ceil(floors * 1.5)
-
-        // Tanks & Storage
-        case 'Overhead Tank':
-          return floors
-
-        case 'Underground Sump':
-          return floors
-
-        // Painting
-        case 'Interior Painting':
-        case 'Exterior Painting':
-          return Math.ceil(projectArea * floors * 0.8) // 80% of floor area for walls
-
-        // Mirrors & Accessories
-        case 'Mirror & Accessories':
-          return bathrooms || Math.ceil(floors * 1.5)
-
-        // Structural Elements
-        case 'Staircase Railing':
-          return floors > 1 ? floors - 1 : 1 // 1 railing per stair level
-
-        // Default case
-        default:
-          // For per-sqft items, use area
-          if (/sq\.?\s*ft/i.test(value)) {
-            return projectArea * floors
-          }
-          return 1
-      }
-    }
-
-    Object.entries(specSelections).forEach(([feature, selection]) => {
-      const value = selection.split(' - ').slice(1).join(' - ')
-      const { amount } = parseMoney(value)
-
-      const qty = calculateQuantities(feature, amount, value)
-      const line = amount * qty
-
-      if (!isNaN(line) && line > 0) {
-        total += line
-        breakdown.push({
-          feature,
-          value,
-          unitAmount: amount,
-          qty,
-          line
-        })
-      }
-    })
-
-    return { 
-      area: projectArea, 
-      total, 
-      breakdown,
-      projectDetails: {
-        floors,
-        bedrooms: bedrooms || Math.ceil(projectArea / 300),
-        bathrooms: bathrooms || Math.ceil(floors * 1.5),
-        quality
-      }
-    }
-  }
 
   return (
     <div className="bg-body-tertiary min-vh-100 py-4 py-md-5">
@@ -639,33 +666,40 @@ export default function App() {
 
         {/* Stepper */}
         <Row className="g-3 justify-content-center mb-4 mb-md-5">
-          <Col xs={6} md={2}>
-            <StepBadge number={1} label="Project Details" active={step === 1} />
+          <Col xs={6} md={3}>
+            <StepBadge number={1} label="Project Type" active={step === 1} />
           </Col>
-          <Col xs={6} md={2}>
+          <Col xs={6} md={3}>
             <StepBadge number={2} label="Auto Estimate" active={step === 2} />
           </Col>
-          <Col xs={6} md={2}>
+          <Col xs={6} md={3}>
             <StepBadge number={3} label="Specifications" active={step === 3} />
           </Col>
-          <Col xs={6} md={2}>
-            <StepBadge number={4} label="Construction Cost" active={step === 4} />
-          </Col>
-          <Col xs={6} md={2}>
-            <StepBadge number={5} label="Calculator" active={step === 5} />
+          <Col xs={6} md={3}>
+            <StepBadge number={4} label="Estimator Summary" active={step === 4} />
           </Col>
         </Row>
 
         {step === 1 && (
           <>
-            {/* Role selection */}
+            {/* Project type selection (Client only) */}
             <div className="text-center mb-3 mb-md-4">
-              <h3 className="fw-semibold">Choose Your Role</h3>
+              <h3 className="fw-semibold">Project Type</h3>
             </div>
 
             <Row className="g-4 align-items-stretch">
               <Col md={6}>
-                <Card className="h-100 shadow rounded p-3 card-hover cursor-pointer" onClick={proceedFromRole}>
+                <Card className="h-100 shadow rounded p-3 card-hover cursor-pointer" onClick={() => {
+                  // Prefill defaults for Client flow
+                  setQuantityPreset('1200')
+                  setVillaForm(prev => ({
+                    ...prev,
+                    area: prev.area || 1200,
+                    unit: prev.unit || 'sq.ft',
+                    bedrooms: prev.bedrooms || 1
+                  }))
+                  proceedFromRole()
+                }}>
                   <Card.Body>
                     <div className="text-center mb-3">
                       <i className="bi bi-person-fill display-5 text-primary"></i>
@@ -676,22 +710,6 @@ export default function App() {
                       <FeatureItem text="Simple form with basic details" />
                       <FeatureItem text="Automatic calculations" />
                       <FeatureItem text="Professional reports" />
-                    </ul>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={6}>
-                <Card className="h-100 shadow rounded p-3">
-                  <Card.Body>
-                    <div className="text-center mb-3">
-                      <i className="bi bi-tools display-5 text-warning"></i>
-                    </div>
-                    <Card.Title className="h4 text-center">Architect/Engineer</Card.Title>
-                    <Card.Subtitle className="text-muted text-center mb-3">I have detailed specifications and quantities</Card.Subtitle>
-                    <ul className="list-unstyled mt-3 mb-0">
-                      <FeatureItem text="Manual quantity inputs" />
-                      <FeatureItem text="Detailed specifications" />
-                      <FeatureItem text="Professional BOQ reports" />
                     </ul>
                   </Card.Body>
                 </Card>
@@ -733,80 +751,6 @@ export default function App() {
           </>
         )}
 
-        {/* Auto-Calculation Display after project selection */}
-        {step === 2 && !showModal && selectedProject && (() => {
-          const estimate = calculateAutoEstimate()
-          if (!estimate) return null
-          
-          return (
-            <Row className="justify-content-center mb-4">
-              <Col lg={10}>
-                <Card className="shadow-sm border-success">
-                  <Card.Header className="bg-success text-white">
-                    <div className="d-flex align-items-center gap-2">
-                      <i className="bi bi-calculator-fill"></i>
-                      <h5 className="mb-0">🚀 Quick Estimate Preview</h5>
-                      <Badge bg="light" text="dark" className="ms-auto">
-                        {selectedProject === 'road' ? 'Road' :
-                         selectedProject === 'renovation' ? 'Renovation' :
-                         selectedProject.charAt(0).toUpperCase() + selectedProject.slice(1)} Project
-                      </Badge>
-                    </div>
-                  </Card.Header>
-                  <Card.Body className="py-3">
-                    <Row className="align-items-center">
-                      <Col md={8}>
-                        <div className="row g-3">
-                          <Col sm={6} md={3}>
-                            <div className="text-center">
-                              <div className="fw-bold text-primary">{estimate.area.toLocaleString()} sqft</div>
-                              <div className="small text-muted">Built-up Area</div>
-                            </div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="text-center">
-                              <div className="fw-bold text-primary">{estimate.floors}</div>
-                              <div className="small text-muted">Floors</div>
-                            </div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="text-center">
-                              <div className="fw-bold text-primary">{estimate.quality}</div>
-                              <div className="small text-muted">Quality</div>
-                            </div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="text-center">
-                              <div className="fw-bold text-primary">{estimate.region === 'Bengaluru (Karnataka)' ? 'Bangalore' : estimate.region}</div>
-                              <div className="small text-muted">Region</div>
-                            </div>
-                          </Col>
-                        </div>
-                      </Col>
-                      <Col md={4} className="text-md-end">
-                        <div className="border-start border-3 border-success ps-3">
-                          <div className="fw-bold text-dark">₹{estimate.costPerSqft.toLocaleString()}/sqft</div>
-                          <div className="fw-bold text-success h4 mb-1">₹{estimate.totalCost.toLocaleString()}</div>
-                          <div className="small text-muted">Total Project Cost</div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="alert alert-light mt-3 mb-0 py-2">
-                      <div className="d-flex align-items-center">
-                        <i className="bi bi-clock text-info me-2"></i>
-                        <div className="small">
-                          <strong>Real-time calculation:</strong> Estimates update automatically as you change inputs.
-                          Approx. 5–10% area may be used for setbacks or open space.
-                        </div>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          )
-        })()}
 
         {/* Specifications Step */}
         {step === 3 && (
@@ -817,64 +761,6 @@ export default function App() {
             </div>
             <div className="text-muted mb-3">For project: <span className="fw-semibold text-dark text-capitalize">{selectedProject || 'project'}</span></div>
 
-            {/* Auto-calculation preview */}
-            {(() => {
-              const estimate = calculateAutoEstimate()
-              if (!estimate) return null
-              
-              return (
-                <Card className="shadow-sm border-info mb-4">
-                  <Card.Header className="bg-info text-white">
-                    <div className="d-flex align-items-center gap-2">
-                      <i className="bi bi-gear-fill"></i>
-                      <h6 className="mb-0">📊 Auto-Calculated Estimate Preview</h6>
-                    </div>
-                  </Card.Header>
-                  <Card.Body className="py-3">
-                    <Row className="align-items-center">
-                      <Col md={8}>
-                        <Row>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Area</div>
-                            <div className="h6">{estimate.area.toLocaleString()} sqft</div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Quality</div>
-                            <div className="h6">{estimate.quality}</div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Region</div>
-                            <div className="h6">{estimate.region}</div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Cost/sqft</div>
-                            <div className="h6">₹{estimate.costPerSqft.toLocaleString()}</div>
-                          </Col>
-                        </Row>
-                      </Col>
-                      <Col md={4} className="text-md-end">
-                        <div className="fw-bold text-success h5 mb-1">
-                          ₹{estimate.totalCost.toLocaleString()}
-                        </div>
-                        <Badge bg="success">Auto-calculated</Badge>
-                        <div className="small text-muted mt-1">
-                          Materials: {Object.keys(estimate.materials).length} items
-                        </div>
-                      </Col>
-                    </Row>
-                    
-                    <div className="alert alert-light mt-3 mb-0 py-2">
-                      <div className="d-flex align-items-center">
-                        <i className="bi bi-lightbulb text-warning me-2"></i>
-                        <div className="small">
-                          <strong>Automatic:</strong> All specifications and material quantities are auto-calculated based on your project inputs.
-                        </div>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              )
-            })()}
 
             <Row className="g-3 mb-3">
               <Col xs={12} sm={6} md={4} lg={3}>
@@ -885,8 +771,22 @@ export default function App() {
                     onChange={(e) => { const t = e.target.value; setPackageTier(t); if (t !== 'Custom') applyTierToAll(t) }}
                     size="sm"
                   >
-                    {['Basic','Standard','Premium','Royal','Custom'].map(t => (
+                    {['Basic','Standard','Luxury','Royal','Custom'].map(t => (
                       <option key={t} value={t}>{t}</option>
+                    ))}
+                  </Form.Select>
+                </div>
+              </Col>
+              <Col xs={12} sm={6} md={4} lg={3}>
+                <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                  <Form.Label className="mb-0 text-nowrap">Quantity Preset</Form.Label>
+                  <Form.Select 
+                    value={quantityPreset}
+                    onChange={(e) => setQuantityPreset(e.target.value)}
+                    size="sm"
+                  >
+                    {['1200','2BHK','3BHK','4BHK','Custom'].map(p => (
+                      <option key={p} value={p}>{p === '1200' ? '1200 sqft' : p}</option>
                     ))}
                   </Form.Select>
                 </div>
@@ -923,6 +823,7 @@ export default function App() {
                         min="0"
                         step="0.01"
                         size="sm"
+                        disabled={quantityPreset !== 'Custom'}
                       />
                     </Card.Body>
                   </Card>
@@ -932,20 +833,20 @@ export default function App() {
 
             <div className="d-flex justify-content-between mt-4 mb-3 border-top pt-3">
               <Button variant="secondary" className="rounded" onClick={() => setStep(2)}>Back</Button>
-              <Button variant="primary" size="lg" className="rounded" onClick={() => setStep(5)}>
-                <i className="bi bi-calculator me-2"></i>Proceed to Calculator
+              <Button variant="primary" size="lg" className="rounded" onClick={() => setStep(4)}>
+                Next: Estimator Summary
               </Button>
             </div>
           </>
         )}
 
-        {/* Auto-Calculation Display - shows when modal closes */}
-        {!showModal && selectedProject && (villaForm.area || apartmentForm.totalArea || officeForm.area || mallForm.totalArea || renoForm.area || roadForm.lengthKm) && (
+        {/* Auto-Calculation Display (kept visible in Steps 2 and 4) */}
+        {!showModal && selectedProject && estimate && (step === 2 || step === 4) && (
           <Card className="shadow-sm border-success mb-4">
             <Card.Header className="bg-success text-white">
               <div className="d-flex align-items-center gap-2">
                 <i className="bi bi-calculator-fill"></i>
-                <h5 className="mb-0">📊 Auto-Calculated Estimate</h5>
+                <h5 className="mb-0">📊 {step === 4 ? 'Estimator Summary' : 'Auto-Calculated Estimate'}</h5>
                 <Badge bg="light" text="dark" className="ms-auto">
                   {selectedProject === 'road' ? 'Road Construction' :
                    selectedProject === 'renovation' ? 'Office Renovation' :
@@ -954,238 +855,123 @@ export default function App() {
               </div>
             </Card.Header>
             <Card.Body>
-              {(() => {
-                const estimate = calculateAutoEstimate()
-                if (!estimate) return null
-                
-                return (
-                  <>
-                    <Row className="mb-4">
-                      <Col md={8}>
-                        <div className="h5 mb-3">🏗️ Project Summary</div>
-                        <Row>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Built-up Area</div>
-                            <div className="h6">{estimate.area.toLocaleString()} sqft</div>
-                          </Col>
-                          <Col sm={6} md={2}>
-                            <div className="fw-bold text-primary">Floors</div>
-                            <div className="h6">{estimate.floors}</div>
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <div className="fw-bold text-primary">Quality</div>
-                            <div className="h6">{estimate.quality}</div>
-                          </Col>
-                          <Col sm={6} md={4}>
-                            <div className="fw-bold text-primary">Region</div>
-                            <div className="h6">{estimate.region}</div>
-                          </Col>
-                        </Row>
-                      </Col>
-                      <Col md={4}>
-                        <div className="h5 mb-3">💰 Cost Breakdown</div>
-                        <div className="border-start border-3 border-success ps-3">
-                          <div className="fw-bold">₹{estimate.costPerSqft.toLocaleString()} per sqft</div>
-                          <div className="h4 text-success mb-0">₹{estimate.totalCost.toLocaleString()}</div>
-                          <small className="text-muted">Total Construction Cost</small>
-                        </div>
-                      </Col>
-                    </Row>
+              <Row className="mb-4">
+                <Col md={8}>
+                  <div className="h5 mb-3">🏗️ Project Summary</div>
+                  <Row>
+                    <Col sm={6} md={3}>
+                      <div className="fw-bold text-primary">Built-up Area</div>
+                      <div className="h6">{estimate.totalArea.toLocaleString()} sqft</div>
+                    </Col>
+                    <Col sm={6} md={2}>
+                      <div className="fw-bold text-primary">Floors</div>
+                      <div className="h6">{estimate.floors}</div>
+                    </Col>
+                    <Col sm={6} md={3}>
+                      <div className="fw-bold text-primary">Quality</div>
+                      <div className="h6">{estimate.qualityFactor}x Multiplier</div>
+                    </Col>
+                    <Col sm={6} md={4}>
+                      <div className="fw-bold text-primary">Region</div>
+                      <div className="h6">{estimate.regionFactor}x Multiplier</div>
+                    </Col>
+                  </Row>
+                </Col>
+                <Col md={4}>
+                  <div className="h5 mb-3">💰 Cost Breakdown</div>
+                  <div className="border-start border-3 border-success ps-3">
+                    <div className="fw-bold">₹{estimate.costPerSqft.toLocaleString()} per sqft</div>
+                    <div className="h4 text-success mb-0">₹{estimate.totalCost.toLocaleString()}</div>
+                    <small className="text-muted">Total Construction Cost</small>
+                  </div>
+                </Col>
+              </Row>
 
-                    <Row>
-                      <Col md={12}>
-                        <div className="h6 mb-3">📦 Material Requirements</div>
-                        <div className="row">
-                          {Object.entries(estimate.materials).map(([material, quantity]) => (
-                            <Col xs={6} sm={4} md={3} key={material} className="mb-2">
-                              <div className="bg-light rounded p-2 text-center">
-                                <div className="fw-bold text-dark">{material}</div>
-                                <div className="text-primary">{quantity.toLocaleString()}</div>
-                              </div>
-                            </Col>
-                          ))}
-                        </div>
-                      </Col>
-                    </Row>
+              {/* Material Breakdown Table */}
+              <div className="mt-4">
+                <h6 className="mb-3">📊 Material Quantities & Costs</h6>
+                <div className="table-responsive">
+                  <table className="table table-sm table-striped">
+                    <thead className="table-dark">
+                      <tr>
+                        <th>Material</th>
+                        <th className="text-end">Quantity</th>
+                        <th className="text-end">Unit</th>
+                        <th className="text-end">Base Rate (₹)</th>
+                        <th className="text-end">Adjusted Rate (₹)</th>
+                        <th className="text-end">Subtotal (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(estimate.materialGroups).map(([groupName, materials]) => {
+                        if (materials.length === 0) return null;
+                        return (
+                          <React.Fragment key={groupName}>
+                            <tr className="table-info">
+                              <td colSpan={6} className="fw-bold text-center">
+                                🏗️ {groupName} Materials
+                              </td>
+                            </tr>
+                            {materials.map((detail) => (
+                              <tr key={detail.material}>
+                                <td className="fw-semibold">{detail.material}</td>
+                                <td className="text-end">{detail.qty.toLocaleString()}</td>
+                                <td className="text-end">{detail.unit}</td>
+                                <td className="text-end">₹{detail.baseRate.toLocaleString()}</td>
+                                <td className="text-end">₹{detail.adjustedRate.toLocaleString()}</td>
+                                <td className="text-end fw-bold">₹{detail.subtotal.toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot className="table-dark">
+                      <tr>
+                        <th colSpan={5} className="text-end">Total Project Cost</th>
+                        <th className="text-end">₹{estimate.totalCost.toLocaleString()}</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
 
-                    <div className="alert alert-info mt-3 mb-0">
-                      <i className="bi bi-info-circle-fill me-2"></i>
+              <div className="alert alert-info mt-3 mb-0">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-info-circle-fill me-2"></i>
+                    <div>
                       <strong>Note:</strong> Values are approximate; approx. 5–10% area may be used for setbacks or open space.
                       Final costs may vary based on site-specific conditions and material availability.
+                      <strong> Approx ±10% variation possible depending on design and site conditions.</strong>
                     </div>
-                  </>
-                )
-              })()}
+                  </div>
+                  <div className="d-flex gap-2 ms-3">
+                    {step === 2 && (
+                      <Button 
+                        variant="outline-light"
+                        size="sm"
+                        onClick={() => setStep(3)}
+                      >
+                        Next: Specifications
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm" 
+                      onClick={() => window.print()}
+                    >
+                      <i className="bi bi-download me-1"></i>
+                      {step === 4 ? 'Download Report' : 'Download PDF'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </Card.Body>
           </Card>
         )}
 
-        {/* Construction Cost Step */}
-        {step === 4 && (
-          <>
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <i className="bi bi-calculator-fill text-success"></i>
-              <h3 className="fw-semibold mb-0">Construction Cost Estimation</h3>
-            </div>
-            
-            {selectedProject === 'villa' && villaForm.area && villaForm.floors && villaForm.quality && villaForm.region && (
-              <>
-                {(() => {
-                  const constructionCost = calculateConstructionCost()
-                  const slabMaterials = calculateSlabMaterials()
-                  return (
-                    <>
-                      <Row className="mb-4">
-                        <Col md={6}>
-                          <Card className="shadow-sm border-success">
-                            <Card.Header className="bg-success text-white">
-                              <h5 className="mb-0">🏗️ Construction Cost Summary</h5>
-                            </Card.Header>
-                            <Card.Body>
-                              <div className="mb-3">
-                                <div className="fw-bold">Project Details:</div>
-                                <div className="text-muted small">
-                                  Area: {constructionCost.area} sqft • Floors: {constructionCost.floors} • 
-                                  Quality: {constructionCost.quality} • Region: {constructionCost.region}
-                                </div>
-                              </div>
-                              <div className="mb-3">
-                                <div className="fw-bold">Cost per sqft: ₹{constructionCost.costPerSqft.toLocaleString()}</div>
-                                <div className="fw-bold">Total Construction Cost: ₹{constructionCost.totalCost.toLocaleString()}</div>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                        <Col md={6}>
-                          <Card className="shadow-sm border-info">
-                            <Card.Header className="bg-info text-white">
-                              <h5 className="mb-0">🧱 Slab Construction Materials</h5>
-                            </Card.Header>
-                            <Card.Body>
-                              <div className="table-responsive">
-                                <table className="table table-sm">
-                                  <tbody>
-                                    <tr><td><strong>Slab Volume:</strong></td><td>{slabMaterials.slabVolumeCum} m³</td></tr>
-                                    <tr><td><strong>Cement:</strong></td><td>{slabMaterials.cementBags} bags ({slabMaterials.cementKg} kg)</td></tr>
-                                    <tr><td><strong>Sand:</strong></td><td>{slabMaterials.sandCum} m³</td></tr>
-                                    <tr><td><strong>Aggregate:</strong></td><td>{slabMaterials.aggregateCum} m³</td></tr>
-                                    <tr><td><strong>Steel:</strong></td><td>{slabMaterials.steelKg.toLocaleString()} kg</td></tr>
-                                    <tr><td><strong>Water:</strong></td><td>{slabMaterials.waterLitres.toLocaleString()} litres</td></tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      </Row>
-                      
-                      <Card className="mb-4">
-                        <Card.Header>
-                          <h5 className="mb-0">📝 Notes</h5>
-                        </Card.Header>
-                        <Card.Body>
-                          <ul className="mb-0">
-                            <li>Values are approximate; 5–10% of area may be used for setbacks/open space.</li>
-                            <li>Materials listed are for slab construction only.</li>
-                            <li>All quantities and costs are auto-calculated—no manual entry required.</li>
-                            <li>Final costs may vary based on site-specific conditions and material availability.</li>
-                          </ul>
-                        </Card.Body>
-                      </Card>
-                    </>
-                  )
-                })()}
-              </>
-            )}
 
-            <div className="d-flex justify-content-between mt-4">
-              <Button variant="secondary" className="rounded" onClick={() => setStep(3)}>Back to Specifications</Button>
-              <Button variant="primary" size="lg" className="rounded" onClick={() => setStep(5)}>
-                Go to Calculator
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* Detailed Estimation Step */}
-        {step === 5 && (
-          <>
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <i className="bi bi-calculator-fill text-success"></i>
-              <h3 className="fw-semibold mb-0">Estimate</h3>
-            </div>
-            <Card className="shadow-sm rounded">
-              <Card.Body>
-                {(() => {
-                  const { area, total, breakdown, projectDetails } = calculateEstimate()
-                  return (
-                    <>
-                      <Row className="mb-3">
-                        <Col md={6}>
-                          <div className="fw-semibold">Project Summary:</div>
-                          <div className="text-muted small">
-                            Area: {area} sqft • Floors: {projectDetails.floors} • 
-                            Bedrooms: {projectDetails.bedrooms} • Bathrooms: {projectDetails.bathrooms}
-                          </div>
-                          <div className="text-muted small">Quality: {projectDetails.quality}</div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="text-end">
-                            <div className="badge bg-info">Auto-calculated quantities</div>
-                          </div>
-                        </Col>
-                      </Row>
-                      
-                      <div className="table-responsive">
-                        <table className="table align-middle table-striped">
-                          <thead className="table-dark">
-                            <tr>
-                              <th className="text-nowrap">Feature</th>
-                              <th className="text-nowrap d-none d-md-table-cell">Selection</th>
-                              <th className="text-end text-nowrap">Qty</th>
-                              <th className="text-end text-nowrap">Rate</th>
-                              <th className="text-end text-nowrap">Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {breakdown.map((b) => (
-                              <tr key={b.feature}>
-                                <td className="text-nowrap">
-                                  <div className="fw-semibold">{b.feature}</div>
-                                  <div className="text-muted small d-md-none">{b.value}</div>
-                                </td>
-                                <td className="d-none d-md-table-cell text-truncate" style={{maxWidth: '200px'}} title={b.value}>{b.value}</td>
-                                <td className="text-end">{Number(b.qty).toLocaleString()}</td>
-                                <td className="text-end">₹{b.unitAmount}</td>
-                                <td className="text-end fw-semibold">₹{b.line.toLocaleString()}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="table-dark">
-                            <tr>
-                              <th colSpan={4} className="text-end">Total Estimated Cost</th>
-                              <th className="text-end">₹{total.toLocaleString()}</th>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                      
-                      <div className="alert alert-warning mt-3">
-                        <i className="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Note:</strong> Values are approximate; 5–10% may vary due to site-specific factors such as soil conditions, accessibility, and local material availability.
-                      </div>
-                    </>
-                  )
-                })()}
-              </Card.Body>
-            </Card>
-
-            <div className="d-flex justify-content-between mt-4">
-              <Button variant="secondary" className="rounded" onClick={() => setStep(3)}>Back to Specifications</Button>
-              <Button variant="outline-primary" className="rounded" onClick={() => window.print()}>Print / Save PDF</Button>
-            </div>
-          </>
-        )}
 
         {/* Requirements Modal */}
         <Modal show={showModal} onHide={closeModal} centered dialogClassName="modal-dialog-centered">
@@ -1239,8 +1025,13 @@ export default function App() {
                     <Form.Label className="fw-semibold">Construction Quality *</Form.Label>
                     <Form.Select value={villaForm.quality} onChange={e => setField('quality', e.target.value)} className={requiredInvalid.includes('quality') ? 'is-invalid' : ''}>
                       <option value="">Select Construction Package</option>
-                      {['Basic', 'Classic', 'Premium', 'Royale'].map(o => (
-                        <option key={o} value={o}>{o}</option>
+                      {[
+                        ['Basic', 'Basic @ ₹1,950/sq.ft'],
+                        ['Standard', 'Standard @ ₹2,100/sq.ft'],
+                        ['Luxury', 'Luxury @ ₹2,200/sq.ft'],
+                        ['Royal', 'Royal @ ₹2,600/sq.ft']
+                      ].map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
                       ))}
                     </Form.Select>
                   </Col>
@@ -1248,7 +1039,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={villaForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['Davangere', 'Hassan', 'Bengaluru (Karnataka)', 'Chennai (Tamil Nadu)', 'North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
@@ -1294,8 +1085,13 @@ export default function App() {
                     <Form.Label className="fw-semibold">Construction Quality *</Form.Label>
                     <Form.Select value={apartmentForm.quality} onChange={e => setField('quality', e.target.value)} className={requiredInvalid.includes('quality') ? 'is-invalid' : ''}>
                       <option value="">Select Construction Package</option>
-                      {['Basic', 'Classic', 'Premium', 'Royale'].map(o => (
-                        <option key={o} value={o}>{o}</option>
+                      {[
+                        ['Basic', 'Basic @ ₹1,950/sq.ft'],
+                        ['Standard', 'Standard @ ₹2,100/sq.ft'],
+                        ['Luxury', 'Luxury @ ₹2,200/sq.ft'],
+                        ['Royal', 'Royal @ ₹2,600/sq.ft']
+                      ].map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
                       ))}
                     </Form.Select>
                   </Col>
@@ -1303,7 +1099,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={apartmentForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
@@ -1356,7 +1152,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={officeForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
@@ -1395,8 +1191,13 @@ export default function App() {
                     <Form.Label className="fw-semibold">Construction Quality *</Form.Label>
                     <Form.Select value={mallForm.quality} onChange={e => setField('quality', e.target.value)} className={requiredInvalid.includes('quality') ? 'is-invalid' : ''}>
                       <option value="">Select Construction Package</option>
-                      {['Basic', 'Classic', 'Premium', 'Royale'].map(o => (
-                        <option key={o} value={o}>{o}</option>
+                      {[
+                        ['Basic', 'Basic @ ₹1,950/sq.ft'],
+                        ['Standard', 'Standard @ ₹2,100/sq.ft'],
+                        ['Luxury', 'Luxury @ ₹2,200/sq.ft'],
+                        ['Royal', 'Royal @ ₹2,600/sq.ft']
+                      ].map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
                       ))}
                     </Form.Select>
                   </Col>
@@ -1404,7 +1205,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={mallForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
@@ -1443,7 +1244,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={roadForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
@@ -1493,7 +1294,7 @@ export default function App() {
                     <Form.Label className="fw-semibold">Region *</Form.Label>
                     <Form.Select value={renoForm.region} onChange={e => setField('region', e.target.value)} className={requiredInvalid.includes('region') ? 'is-invalid' : ''}>
                       <option value="">Select Region</option>
-                      {['North', 'South', 'East', 'West', 'Central'].map(r => (
+                      {['Hassan','Bangalore','Davengere','Chennai'].map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </Form.Select>
