@@ -107,123 +107,129 @@ function calcQuantities(projectType, totalArea, floors = 1) {
 
 // ---------- Realistic Construction Cost Calculation ----------
 function calculateEstimation({ projectType, area, floors, region, quality }) {
-  const totalArea = area * floors;
-  const regionFactor = regionMultipliers[region] || 1.0;
-  const qualityFactor = qualityMultipliers[quality] || 1.0;
+  console.log({projectType, area, floors, region, quality})
+  try {
+    const totalArea = area * floors;
+    const regionFactor = regionMultipliers[region] || 1.0;
+    const qualityFactor = qualityMultipliers[quality] || 1.0;
 
-  // Realistic base rates per sqft for different project types
-  const baseRatesPerSqft = {
-    Villa: 1250,        // ₹1,250 per sqft base rate
-    Apartment: 1100,    // ₹1,100 per sqft base rate  
-    Office: 2000,       // ₹2,000 per sqft base rate
-    Mall: 2800,         // ₹2,800 per sqft base rate
-    Road: 500           // ₹500 per sqft base rate
-  };
-
-  const baseRate = baseRatesPerSqft[projectType] || 2500;
-  
-  // Calculate total cost with multipliers applied only once
-  const totalCost = totalArea * baseRate * regionFactor * qualityFactor;
-  const costPerSqft = totalCost / totalArea;
-
-  // Generate realistic material breakdown based on total cost
-  const quantities = calcQuantities(projectType, totalArea, floors);
-  const costDetails = {};
-  const materialGroups = {
-    Structure: [],
-    Finishing: [],
-    Electrical: [],
-    Plumbing: [],
-    Doors: [],
-    Others: []
-  };
-
-  // Calculate material costs as percentages of total cost
-  const materialPercentages = {
-    Villa: {
-      Cement: 0.12, Steel: 0.15, Bricks: 0.08, Sand: 0.05,
-      InteriorPainting: 0.08, ExteriorPainting: 0.03, LivingDiningFlooring: 0.10,
-      RoomsKitchenFlooring: 0.12, Electrical: 0.08, Windows: 0.05,
-      MainDoor: 0.02, InternalDoors: 0.03, BathroomDoors: 0.02,
-      OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.01,
-      MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.03
-    },
-    Apartment: {
-      Cement: 0.10, Steel: 0.12, Bricks: 0.07, Sand: 0.04,
-      InteriorPainting: 0.07, ExteriorPainting: 0.02, LivingDiningFlooring: 0.12,
-      RoomsKitchenFlooring: 0.15, Electrical: 0.10, Windows: 0.06,
-      MainDoor: 0.01, InternalDoors: 0.04, BathroomDoors: 0.03,
-      OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.02,
-      MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.04
-    },
-    Office: {
-      LivingDiningFlooring: 0.25, InteriorPainting: 0.10, ExteriorPainting: 0.05,
-      Electrical: 0.15, FalseCeiling: 0.12, GlassPartition: 0.15,
-      Windows: 0.08, MainDoor: 0.02, InternalDoors: 0.03,
-      OverheadTank: 0.01, UndergroundSump: 0.01, MainSinkFaucet: 0.01,
-      SanitarywareCPFittings: 0.02
-    },
-    Mall: {
-      Cement: 0.08, Steel: 0.10, HVAC: 0.20, Electrical: 0.12,
-      LivingDiningFlooring: 0.15, InteriorPainting: 0.08, ExteriorPainting: 0.05,
-      Windows: 0.10, MainDoor: 0.01, OverheadTank: 0.01,
-      UndergroundSump: 0.01, MainSinkFaucet: 0.01, SanitarywareCPFittings: 0.02
-    },
-    Road: {
-      Bitumen: 0.40, Aggregate: 0.30, RoadCost: 0.30
-    }
-  };
-
-  const percentages = materialPercentages[projectType] || materialPercentages.Villa;
-
-  for (const [item, qty] of Object.entries(quantities)) {
-    const percentage = percentages[item] || 0;
-    if (percentage === 0) continue;
-
-    const materialCost = totalCost * percentage;
-    const baseRate = basePrices[item];
-    const adjustedRate = baseRate ? baseRate * regionFactor * qualityFactor : 0;
-    const calculatedQty = baseRate ? Math.round(materialCost / adjustedRate) : qty;
-
-    const unit = getUnitForMaterial(item);
-    const detail = {
-      material: item,
-      qty: calculatedQty,
-      unit: unit,
-      baseRate: baseRate || 0,
-      adjustedRate: Math.round(adjustedRate * 100) / 100,
-      subtotal: Math.round(materialCost * 100) / 100
+    // Realistic base rates per sqft for different project types
+    const baseRatesPerSqft = {
+      Villa: 1250,        // ₹1,250 per sqft base rate
+      Apartment: 1100,    // ₹1,100 per sqft base rate  
+      Office: 2000,       // ₹2,000 per sqft base rate
+      Mall: 2800,         // ₹2,800 per sqft base rate
+      Road: 500           // ₹500 per sqft base rate
     };
 
-    costDetails[item] = detail;
-    
-    // Group materials for better organization
-    if (['Cement', 'Steel', 'Sand', 'Bricks', 'RedBricks'].includes(item)) {
-      materialGroups.Structure.push(detail);
-    } else if (['InteriorPainting', 'ExteriorPainting', 'LivingDiningFlooring', 'RoomsKitchenFlooring', 'BalconyFlooring', 'ParkingTiles', 'StaircaseFlooring', 'CeramicWallDado'].includes(item)) {
-      materialGroups.Finishing.push(detail);
-    } else if (['Electrical', 'Windows', 'WindowGrills'].includes(item)) {
-      materialGroups.Electrical.push(detail);
-    } else if (['MainSinkFaucet', 'SanitarywareCPFittings', 'KitchenSink', 'OverheadTank', 'UndergroundSump'].includes(item)) {
-      materialGroups.Plumbing.push(detail);
-    } else if (['MainDoor', 'InternalDoors', 'BathroomDoors', 'PoojaRoomDoor'].includes(item)) {
-      materialGroups.Doors.push(detail);
-    } else {
-      materialGroups.Others.push(detail);
-    }
-  }
+    const baseRate = baseRatesPerSqft[projectType] || 2500;
 
-  return {
-    totalArea,
-    floors,
-    regionFactor,
-    qualityFactor,
-    costDetails,
-    materialGroups,
-    totalCost: Math.round(totalCost * 100) / 100,
-    costPerSqft: Math.round(costPerSqft * 100) / 100,
-    projectType
-  };
+    // Calculate total cost with multipliers applied only once
+    const totalCost = totalArea * baseRate * regionFactor * qualityFactor;
+    const costPerSqft = totalCost / totalArea;
+
+    // Generate realistic material breakdown based on total cost
+    const quantities = calcQuantities(projectType, totalArea, floors);
+    const costDetails = {};
+    const materialGroups = {
+      Structure: [],
+      Finishing: [],
+      Electrical: [],
+      Plumbing: [],
+      Doors: [],
+      Others: []
+    };
+
+    // Calculate material costs as percentages of total cost
+    const materialPercentages = {
+      Villa: {
+        Cement: 0.12, Steel: 0.15, Bricks: 0.08, Sand: 0.05,
+        InteriorPainting: 0.08, ExteriorPainting: 0.03, LivingDiningFlooring: 0.10,
+        RoomsKitchenFlooring: 0.12, Electrical: 0.08, Windows: 0.05,
+        MainDoor: 0.02, InternalDoors: 0.03, BathroomDoors: 0.02,
+        OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.01,
+        MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.03
+      },
+      Apartment: {
+        Cement: 0.10, Steel: 0.12, Bricks: 0.07, Sand: 0.04,
+        InteriorPainting: 0.07, ExteriorPainting: 0.02, LivingDiningFlooring: 0.12,
+        RoomsKitchenFlooring: 0.15, Electrical: 0.10, Windows: 0.06,
+        MainDoor: 0.01, InternalDoors: 0.04, BathroomDoors: 0.03,
+        OverheadTank: 0.01, UndergroundSump: 0.02, StaircaseRailing: 0.02,
+        MainSinkFaucet: 0.01, KitchenSink: 0.01, SanitarywareCPFittings: 0.04
+      },
+      Office: {
+        LivingDiningFlooring: 0.25, InteriorPainting: 0.10, ExteriorPainting: 0.05,
+        Electrical: 0.15, FalseCeiling: 0.12, GlassPartition: 0.15,
+        Windows: 0.08, MainDoor: 0.02, InternalDoors: 0.03,
+        OverheadTank: 0.01, UndergroundSump: 0.01, MainSinkFaucet: 0.01,
+        SanitarywareCPFittings: 0.02
+      },
+      Mall: {
+        Cement: 0.08, Steel: 0.10, HVAC: 0.20, Electrical: 0.12,
+        LivingDiningFlooring: 0.15, InteriorPainting: 0.08, ExteriorPainting: 0.05,
+        Windows: 0.10, MainDoor: 0.01, OverheadTank: 0.01,
+        UndergroundSump: 0.01, MainSinkFaucet: 0.01, SanitarywareCPFittings: 0.02
+      },
+      Road: {
+        Bitumen: 0.40, Aggregate: 0.30, RoadCost: 0.30
+      }
+    };
+
+    const percentages = materialPercentages[projectType] || materialPercentages.Villa;
+
+    for (const [item, qty] of Object.entries(quantities)) {
+      const percentage = percentages[item] || 0;
+      if (percentage === 0) continue;
+
+      const materialCost = totalCost * percentage;
+      const baseRate = basePrices[item];
+      const adjustedRate = baseRate ? baseRate * regionFactor * qualityFactor : 0;
+      const calculatedQty = baseRate ? Math.round(materialCost / adjustedRate) : qty;
+
+      const unit = getUnitForMaterial(item);
+      const detail = {
+        material: item,
+        qty: calculatedQty,
+        unit: unit,
+        baseRate: baseRate || 0,
+        adjustedRate: Math.round(adjustedRate * 100) / 100,
+        subtotal: Math.round(materialCost * 100) / 100
+      };
+
+      costDetails[item] = detail;
+
+      // Group materials for better organization
+      if (['Cement', 'Steel', 'Sand', 'Bricks', 'RedBricks'].includes(item)) {
+        materialGroups.Structure.push(detail);
+      } else if (['InteriorPainting', 'ExteriorPainting', 'LivingDiningFlooring', 'RoomsKitchenFlooring', 'BalconyFlooring', 'ParkingTiles', 'StaircaseFlooring', 'CeramicWallDado'].includes(item)) {
+        materialGroups.Finishing.push(detail);
+      } else if (['Electrical', 'Windows', 'WindowGrills'].includes(item)) {
+        materialGroups.Electrical.push(detail);
+      } else if (['MainSinkFaucet', 'SanitarywareCPFittings', 'KitchenSink', 'OverheadTank', 'UndergroundSump'].includes(item)) {
+        materialGroups.Plumbing.push(detail);
+      } else if (['MainDoor', 'InternalDoors', 'BathroomDoors', 'PoojaRoomDoor'].includes(item)) {
+        materialGroups.Doors.push(detail);
+      } else {
+        materialGroups.Others.push(detail);
+      }
+    }
+
+    return {
+      totalArea,
+      floors,
+      regionFactor,
+      qualityFactor,
+      costDetails,
+      materialGroups,
+      totalCost: Math.round(totalCost * 100) / 100,
+      costPerSqft: Math.round(costPerSqft * 100) / 100,
+      projectType
+    };
+  }
+  catch {
+    return null
+  }
 }
 
 // Helper function to get units for materials
