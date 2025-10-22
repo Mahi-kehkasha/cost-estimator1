@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { Container, Row, Col, Card, Button, Badge, Modal, Form } from 'react-bootstrap'
-
+import Header from "../../cost-estimator1/src/components/Header";
 
 function StepBadge({ number, label, active }) {
   return (
@@ -661,19 +661,11 @@ export default function App() {
     return { amount, perSqft, perBag, perKg, perCft, perPiece }
   }
 
-
-
-
-
   return (
     <div className="bg-body-tertiary min-vh-100 py-4 py-md-5">
       <Container>
         {/* Header */}
-        <div className="text-center mb-4 mb-md-5">
-          <h1 className="fw-bold">BuilderBro Cost Estimator</h1>
-          <p className="text-secondary mb-0">Professional construction cost estimation tool for architects and engineers</p>
-        </div>
-
+        <Header />
         {/* Stepper */}
         <Row className="g-3 justify-content-center mb-4 mb-md-5">
           <Col xs={6} md={3}>
@@ -1021,8 +1013,6 @@ export default function App() {
             </Card.Body>
           </Card>
         )}
-
-
 
         {/* Requirements Modal */}
         <Modal show={showModal} onHide={closeModal} centered dialogClassName="modal-dialog-centered">
