@@ -1,4 +1,4 @@
-import { basePrices, regionMultipliers, qualityMultipliers } from './data/constants.jsx';
+import { basePrices, regionMultipliers, qualityMultipliers } from '../data/constants';
 
 // ---------- Realistic Quantity Formulas ----------
 function calcQuantities(projectType, totalArea, floors = 1) {
@@ -266,3 +266,5 @@ function getUnitForMaterial(material) {
   };
   return unitMap[material] || 'nos';
 }
+
+export { calculateEstimation };
