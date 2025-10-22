@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { calculateEstimation } from '../utils/utils';
-import { detailedPrices, projectTypeData } from '../data/constants';
+import { detailedPrices } from '../data/constants/detailedPrices';
+import { projectTypeData } from '../data/constants/projectTypes';
 
 export const useProjectState = () => {
   const [step, setStep] = useState(1);

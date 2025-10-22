@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row } from 'react-bootstrap';
-import ProjectCard from '../components/ProjectCard';
+import ProjectCard from '../components/ProjectCard/ProjectCard';
 
 const ProjectTypeSelection = ({ projectTypes, openProjectModal }) => (
   <Row className="g-3 g-md-4">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Col, Button, Modal, Form } from 'react-bootstrap'
-import {villaTypes, constructionPackages, regions} from '../../../data/constants.jsx';
+import {constructionPackages} from '../../../data/constants/packages';
+import {villaTypes, regions} from '../../../data/constants/presets';
 
 const VillaForm = ({villaData, requiredInvalid, setField}) => {
     return (

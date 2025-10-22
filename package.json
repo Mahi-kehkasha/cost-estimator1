@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "jest",
     "preview": "vite preview --port 5174"
   },
   "dependencies": {
@@ -19,10 +20,18 @@
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "babel-jest": "^30.2.0",
     "eslint": "8.57.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "vite": "^7.1.11"
   }
 }

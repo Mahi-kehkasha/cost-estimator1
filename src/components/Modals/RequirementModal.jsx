@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Row, Col, Button, Modal, Form } from 'react-bootstrap'
-import { initialVillaForm } from "../../data/constants.jsx";
-import VillaForm from "./Forms/VillaForm.jsx";
+import { initialVillaForm } from '../../data/constants/forms';
+import VillaForm from './Forms/VillaForm';
 
 const RequirementModal = (props) => {
 

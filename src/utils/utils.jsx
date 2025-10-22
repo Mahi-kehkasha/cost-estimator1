@@ -1,4 +1,5 @@
-import { basePrices, regionMultipliers, qualityMultipliers } from '../data/constants';
+import { regionMultipliers, qualityMultipliers } from '../data/constants/multipliers';
+import { basePrices } from '../data/constants/basePrices';
 
 // ---------- Realistic Quantity Formulas ----------
 function calcQuantities(projectType, totalArea, floors = 1) {
