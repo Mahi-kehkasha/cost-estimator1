@@ -656,11 +656,6 @@ export default function App() {
       <Container>
         {/* Header */}
         <Header />
-        <div className="text-center mb-4 mb-md-5">
-          <h1 className="fw-bold">BuilderBro Cost Estimator</h1>
-          <p className="text-secondary mb-0">Professional construction cost estimation tool for architects and engineers</p>
-        </div>
-
         {/* Stepper */}
         <Row className="g-3 justify-content-center mb-4 mb-md-5">
           <Col xs={6} md={3}>
