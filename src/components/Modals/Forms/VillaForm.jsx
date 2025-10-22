@@ -7,9 +7,9 @@ const VillaForm = ({villaData, requiredInvalid, setField}) => {
         <Form>
             <Row className="g-3">
                 <Col md={6}>
-                    <Form.Label className="fw-semibold">Villa Type *</Form.Label>
+                    <Form.Label className="fw-semibold">Type *</Form.Label>
                     <Form.Select value={villaData.type} onChange={e => setField('type', e.target.value)} className={requiredInvalid.includes('type') ? 'is-invalid' : ''}>
-                        <option value="">Select Villa Type</option>
+                        <option value="">Select House Type</option>
                         {villaTypes.map(t => (
                             <option key={t} value={t}>{t}</option>
                         ))}

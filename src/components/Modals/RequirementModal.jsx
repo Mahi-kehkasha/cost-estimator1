@@ -54,7 +54,7 @@ const RequirementModal = (props) => {
       <Modal.Header closeButton>
         <Modal.Title className="d-flex align-items-center gap-2">
           <i className="bi bi-clipboard-check text-primary"></i>
-          {selectedProject === 'villa' ? 'Single-Family Villa Requirements' : 'Project Requirements'}
+          {selectedProject === 'villa' ? 'Independent House' : 'Project Requirements'}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
