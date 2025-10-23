@@ -1,5 +1,5 @@
 import React from 'react';
-import ProjectSpecifications from '../components/ProjectSpecifications';
+import ProjectSpecifications from '../../components/ProjectSpecifications/ProjectSpecifications';
 
 const ProjectSpecificationStep = ({
   specFeatures,
