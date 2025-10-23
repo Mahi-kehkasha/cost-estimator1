@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Button, Spinner, Container, Card } from 'react-bootstrap';
+import { Row, Col, Button, Spinner, Container, Card, Table } from 'react-bootstrap';
 import OpenAI from 'openai';
 
 // Constants for package tiers and quantity presets
@@ -10,6 +10,7 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
   const [chatgptRes, setChatGptResp] = useState(null);
   const [fetchingDetails, setFetchingDetails] = useState(false);
 
+
   // Function to fetch data from ChatGPT
   async function getDataFromChatGPT() {
     const client = new OpenAI({
@@ -17,23 +18,102 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
       dangerouslyAllowBrowser: true,
     });
 
-    const prompt = `Estimate the total cost to construct a house with the following details:
-    - Built-up area: ${selectedProjDetails.area} sq.ft
-    - Bathrooms: ${selectedProjDetails.bathrooms}
-    - Bedrooms: ${selectedProjDetails.bedrooms}
-    - Floors: ${selectedProjDetails.floors}
-    - Location: India
-    Consider basic construction costs.`;
-
-    console.log('Prompt:', prompt);
     setFetchingDetails(true);
 
     try {
-      const response = await client.responses.create({
-        model: 'gpt-5',
-        input: prompt,
+      /*const response = await client.responses.create({
+        text: {
+          format: {
+            "type": "json_schema",
+            "name": "bricks",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "estimated_total_cost_inr": {
+                  "type": "string",
+                  "description": "Estimated total cost in INR."
+                },
+                "external_walls_bricks": {
+                  "type": "string",
+                  "description": "Type or quantity of bricks used for external walls."
+                },
+                "internal_walls_bricks": {
+                  "type": "string",
+                  "description": "Type or quantity of bricks used for internal walls."
+                }
+              },
+              "required": [
+                "estimated_total_cost_inr",
+                "external_walls_bricks",
+                "internal_walls_bricks"
+              ],
+              "additionalProperties": false
+
+            }
+          }
+        },
+        prompt: {
+          "id": "pmpt_68fa258429388190915466521773cbfb0031ef9bf4dd0f6d",
+          "version": "10",
+          "variables": {
+            "builtuparea": `${selectedProjDetails.area} sq.ft`,
+            "rooms": `${selectedProjDetails.bedrooms}`,
+            "floors": `${selectedProjDetails.floors}`,
+            "washrooms": `${selectedProjDetails.bathrooms}`,
+            "kitchens": '1',
+            "city": "Bengaluru"
+          }
+        },
       });
-      setChatGptResp(response.output_text);
+      */
+
+      const response = await client.responses.parse({
+        prompt: {
+          "id": "pmpt_68fa258429388190915466521773cbfb0031ef9bf4dd0f6d",
+          "version": "10",
+          "variables": {
+            "builtuparea": `${selectedProjDetails.area} sq.ft`,
+            "rooms": `${selectedProjDetails.bedrooms}`,
+            "floors": `${selectedProjDetails.floors}`,
+            "washrooms": `${selectedProjDetails.bathrooms}`,
+            "kitchens": '1',
+            "city": "Bengaluru"
+          }
+        },
+        "text": {
+          "format": {
+            "type": "json_schema",
+            "name": "bricks",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "estimated_total_cost_inr": {
+                  "type": "string",
+                  "description": "Estimated total cost in INR."
+                },
+                "external_walls_bricks": {
+                  "type": "string",
+                  "description": "Type or quantity of bricks used for external walls."
+                },
+                "internal_walls_bricks": {
+                  "type": "string",
+                  "description": "Type or quantity of bricks used for internal walls."
+                }
+              },
+              "required": [
+                "estimated_total_cost_inr",
+                "external_walls_bricks",
+                "internal_walls_bricks"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+      });
+      console.log(response.output_parsed);
+      setChatGptResp(response.output_parsed);
     } catch (error) {
       console.error('Error fetching data from ChatGPT:', error);
       setChatGptResp('Failed to fetch data. Please try again.');
@@ -93,7 +173,16 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
             <Card className="shadow-sm">
               <Card.Body>
                 <h5 className="fw-semibold">Estimated Cost</h5>
-                <p className="fs-5 text-success">{chatgptRes}</p>
+                <Container className="fs-5 text-success">
+                  <Table>
+                    <tbody>
+                      <tr><td>Outdoor Walls</td><td>{chatgptRes.external_walls_bricks}</td></tr>
+                      <tr><td>Inddor Walls</td><td>{chatgptRes.internal_walls_bricks}</td></tr>
+                      <tr><td>Bricks Cost</td><td>{chatgptRes.estimated_total_cost_inr}</td></tr>
+                    </tbody>
+                  </Table>
+
+                </Container>
               </Card.Body>
             </Card>
           </Col>
