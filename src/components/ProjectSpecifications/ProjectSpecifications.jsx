@@ -1,137 +1,119 @@
-import React from 'react';
-import { Row, Col, Form, Button, Card } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Row, Col, Button, Spinner, Container, Card } from 'react-bootstrap';
+import OpenAI from 'openai';
 
 // Constants for package tiers and quantity presets
 const PACKAGE_TIERS = ['Basic', 'Standard', 'Luxury', 'Royal', 'Custom'];
 const QUANTITY_PRESETS = ['1200', '2BHK', '3BHK', '4BHK', 'Custom'];
 
-const ProjectSpecifications = ({
-  specFeatures,
-  specSelections,
-  specQuantities,
-  packageTier,
-  quantityPreset,
-  specTable,
-  setSpec,
-  setQuantity,
-  applyTierToAll,
-  setPackageTier,
-  setQuantityPreset,
-  onBack,
-  onNext,
-}) => {
-  // Helper function to generate dropdown options
-  const generateOptions = (options, formatFn = (opt) => opt) =>
-    options.map((option) => (
-      <option key={option} value={option}>
-        {formatFn(option)}
-      </option>
-    ));
+const ProjectSpecifications = ({ selectedProjDetails }) => {
+  const [chatgptRes, setChatGptResp] = useState(null);
+  const [fetchingDetails, setFetchingDetails] = useState(false);
+
+  // Function to fetch data from ChatGPT
+  async function getDataFromChatGPT() {
+    const client = new OpenAI({
+      apiKey: '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',
+      dangerouslyAllowBrowser: true,
+    });
+
+    const prompt = `Estimate the total cost to construct a house with the following details:
+    - Built-up area: ${selectedProjDetails.area} sq.ft
+    - Bathrooms: ${selectedProjDetails.bathrooms}
+    - Bedrooms: ${selectedProjDetails.bedrooms}
+    - Floors: ${selectedProjDetails.floors}
+    - Location: India
+    Consider basic construction costs.`;
+
+    console.log('Prompt:', prompt);
+    setFetchingDetails(true);
+
+    try {
+      const response = await client.responses.create({
+        model: 'gpt-5',
+        input: prompt,
+      });
+      setChatGptResp(response.output_text);
+    } catch (error) {
+      console.error('Error fetching data from ChatGPT:', error);
+      setChatGptResp('Failed to fetch data. Please try again.');
+    } finally {
+      setFetchingDetails(false);
+    }
+  }
 
   return (
-    <>
+    <Container className="py-4">
       {/* Header */}
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <i className="bi bi-list-check text-primary"></i>
-        <h3 className="fw-semibold mb-0">Project Specifications</h3>
-      </div>
-
-      {/* Package and Quantity Preset Selectors */}
-      <Row className="g-3 mb-4">
-        <Col xs={12} sm={6} md={4} lg={3}>
-          <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
-            <Form.Label className="mb-0 text-nowrap">Package</Form.Label>
-            <Form.Select
-              value={packageTier}
-              onChange={(e) => {
-                const tier = e.target.value;
-                setPackageTier(tier);
-                if (tier !== 'Custom') applyTierToAll(tier);
-              }}
-              size="sm"
-              aria-label="Select Package Tier"
-            >
-              {generateOptions(PACKAGE_TIERS)}
-            </Form.Select>
-          </div>
-        </Col>
-        <Col xs={12} sm={6} md={4} lg={3}>
-          <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
-            <Form.Label className="mb-0 text-nowrap">Quantity Preset</Form.Label>
-            <Form.Select
-              value={quantityPreset}
-              onChange={(e) => setQuantityPreset(e.target.value)}
-              size="sm"
-              aria-label="Select Quantity Preset"
-            >
-              {generateOptions(QUANTITY_PRESETS, (preset) =>
-                preset === '1200' ? '1200 sqft' : preset
-              )}
-            </Form.Select>
-          </div>
+      <Row className="mb-4">
+        <Col>
+          <h2 className="text-primary fw-bold">Project Specifications</h2>
+          <p className="text-muted">
+            Fetch an estimated cost for your project based on the provided details.
+          </p>
         </Col>
       </Row>
 
-      {/* Specification Cards */}
-      <Row className="g-3 g-md-4">
-        {specFeatures.map((feature) => (
-          <Col xs={12} sm={6} md={6} lg={4} xl={3} key={feature}>
-            <Card className="h-100 shadow-sm rounded p-3">
-              <Card.Body className="d-flex flex-column">
-                {/* Feature Title */}
-                <div className="fw-semibold mb-2 text-truncate" title={feature}>
-                  {feature}
-                </div>
+      {/* Fetch Data Button */}
+      <Row className="mb-4">
+        <Col xs={12} className="text-center">
+          <Button
+            size="lg"
+            variant="primary"
+            onClick={getDataFromChatGPT}
+            disabled={fetchingDetails}
+          >
+            {fetchingDetails ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Fetching Estimation...
+              </>
+            ) : (
+              'Fetch Cost Estimation'
+            )}
+          </Button>
+        </Col>
+      </Row>
 
-                {/* Specification Selector */}
-                <Form.Select
-                  value={specSelections[feature] || ''}
-                  disabled={packageTier !== 'Custom'}
-                  onChange={(e) => {
-                    const [tier] = e.target.value.split(' - ');
-                    const value = specTable[feature][tier];
-                    setSpec(feature, tier, value);
-                  }}
-                  className="mb-2"
-                  size="sm"
-                  aria-label={`Select specification for ${feature}`}
-                >
-                  <option value="">Select option</option>
-                  {Object.entries(specTable[feature]).map(([tier, val]) => (
-                    <option key={tier} value={`${tier} - ${val}`}>
-                      {`${tier} - ${val}`}
-                    </option>
-                  ))}
-                </Form.Select>
+      {/* Loading Spinner */}
+      {fetchingDetails && (
+        <Row className="mb-4">
+          <Col xs={12} className="text-center">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Fetching Details...</span>
+            </Spinner>
+          </Col>
+        </Row>
+      )}
 
-                {/* Quantity Input */}
-                <Form.Control
-                  type="number"
-                  placeholder="Qty"
-                  value={specQuantities[feature] || ''}
-                  onChange={(e) => setQuantity(feature, e.target.value)}
-                  min="0"
-                  step="0.01"
-                  size="sm"
-                  disabled={quantityPreset !== 'Custom'}
-                  aria-label={`Enter quantity for ${feature}`}
-                />
+      {/* ChatGPT Response */}
+      {chatgptRes && (
+        <Row className="mb-4">
+          <Col xs={12}>
+            <Card className="shadow-sm">
+              <Card.Body>
+                <h5 className="fw-semibold">Estimated Cost</h5>
+                <p className="fs-5 text-success">{chatgptRes}</p>
               </Card.Body>
             </Card>
           </Col>
-        ))}
-      </Row>
+        </Row>
+      )}
 
-      {/* Navigation Buttons */}
-      <div className="d-flex justify-content-between mt-4 mb-3 border-top pt-3">
-        <Button variant="secondary" className="rounded" onClick={onBack}>
-          Back
-        </Button>
-        <Button variant="primary" size="lg" className="rounded" onClick={onNext}>
-          Next: Estimator Summary
-        </Button>
-      </div>
-    </>
+      {/* Project Details */}
+      <Row>
+        <Col xs={12}>
+          <Card className="shadow-sm">
+            <Card.Body>
+              <h5 className="fw-semibold">Project Details</h5>
+              <pre className="bg-light p-3 rounded">
+                {JSON.stringify(selectedProjDetails, null, 2)}
+              </pre>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

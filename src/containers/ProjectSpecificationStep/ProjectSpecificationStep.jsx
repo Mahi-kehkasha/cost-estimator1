@@ -12,22 +12,12 @@ const ProjectSpecificationStep = ({
   setQuantity,
   applyTierToAll,
   setPackageTier,
+  selectedProjDetails,
   onBack,
   onNext,
 }) => (
   <ProjectSpecifications
-    specFeatures={specFeatures}
-    specSelections={specSelections}
-    specQuantities={specQuantities}
-    packageTier={packageTier}
-    quantityPreset={quantityPreset}
-    specTable={specTable}
-    setSpec={setSpec}
-    setQuantity={setQuantity}
-    applyTierToAll={applyTierToAll}
-    setPackageTier={setPackageTier}
-    onBack={onBack}
-    onNext={onNext}
+    selectedProjDetails={selectedProjDetails}
   />
 );
 

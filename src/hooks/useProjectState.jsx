@@ -53,6 +53,7 @@ export const useProjectState = () => {
   const closeModal = () => setShowModal(false);
 
   const handleSetProjectDetails = (selectedProj) => {
+    console.log(selectedProj);
     setSelectedProjDetails(selectedProj);
     setShowModal(false);
     setStep(2);

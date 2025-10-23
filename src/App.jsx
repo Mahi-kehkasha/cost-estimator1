@@ -30,6 +30,7 @@ export default function App() {
     openProjectModal,
     closeModal,
     handleSetProjectDetails,
+    selectedProjDetails,
   } = useProjectState();
 
   return (
@@ -37,13 +38,13 @@ export default function App() {
       <Container>
         <Header />
         <Stepper step={step} />
-
         {step === 1 && (
           <ProjectTypeSelection projectTypes={projectTypes} openProjectModal={openProjectModal} />
         )}
 
         {step === 2 && (
-          <ProjectSpecificationStep
+          <>
+      <ProjectSpecificationStep
             specFeatures={specFeatures}
             specSelections={specSelections}
             specQuantities={specQuantities}
@@ -54,9 +55,11 @@ export default function App() {
             setQuantity={setQuantity}
             applyTierToAll={applyTierToAll}
             setPackageTier={setPackageTier}
+            selectedProjDetails={selectedProjDetails}
             onBack={() => setStep(1)}
             onNext={handleEstimate}
           />
+          </>
         )}
 
         {step === 3 && (
