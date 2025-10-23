@@ -212,6 +212,7 @@ function calculateEstimation({ projectType, area, floors, region, quality }) {
       } else {
         materialGroups.Others.push(detail);
       }
+      /*TEST*/
     }
 
     return {
