@@ -199,8 +199,6 @@ function calculateEstimation({ projectType, area, floors, region, quality }) {
       };
 
       costDetails[item] = detail;
-
-      // Group materials for better organization
       if (['Cement', 'Steel', 'Sand', 'Bricks', 'RedBricks'].includes(item)) {
         materialGroups.Structure.push(detail);
       } else if (['InteriorPainting', 'ExteriorPainting', 'LivingDiningFlooring', 'RoomsKitchenFlooring', 'BalconyFlooring', 'ParkingTiles', 'StaircaseFlooring', 'CeramicWallDado'].includes(item)) {
