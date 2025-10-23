@@ -29,7 +29,7 @@ export default function App() {
     setQuantity,
     openProjectModal,
     closeModal,
-    callParent,
+    handleSetProjectDetails,
   } = useProjectState();
 
   return (
@@ -72,7 +72,7 @@ export default function App() {
             showModal={showModal}
             hideModal={closeModal}
             selectedProject={selectedProject}
-            callParent={callParent}
+            handleSetProjectDetails={handleSetProjectDetails}
           />
         )}
       </Container>

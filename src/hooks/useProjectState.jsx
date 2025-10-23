@@ -52,7 +52,7 @@ export const useProjectState = () => {
 
   const closeModal = () => setShowModal(false);
 
-  const callParent = (selectedProj) => {
+  const handleSetProjectDetails = (selectedProj) => {
     setSelectedProjDetails(selectedProj);
     setShowModal(false);
     setStep(2);
@@ -86,6 +86,6 @@ export const useProjectState = () => {
     setQuantity,
     openProjectModal,
     closeModal,
-    callParent,
+    handleSetProjectDetails,
   };
 };

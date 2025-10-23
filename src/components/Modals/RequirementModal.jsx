@@ -1,25 +1,20 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Row, Col, Button, Modal, Form } from 'react-bootstrap'
 import { initialVillaForm } from '../../data/constants/forms';
-import VillaForm from './Forms/VillaForm';
+import IndependentHouseForm from './Forms/IndependentHouseForm/IndependentHouseForm';
 
 const RequirementModal = (props) => {
 
-  const { showModal, hideModal, callParent, selectedProject } = props;
+  const { showModal, hideModal, handleSetProjectDetails, selectedProject } = props;
   const [villaData, setVillaData] = useState(initialVillaForm)
 
 
   const requiredKeysForProject = useMemo(() => ({
-    villa: ['type', 'area', 'floors', 'quality', 'region'],
-    apartment: ['totalArea', 'units', 'floors', 'quality', 'region'],
-    office: ['area', 'floors', 'layout', 'ac', 'elevators', 'region'],
-    mall: ['totalArea', 'floors', 'quality', 'region'],
-    road: ['lengthKm', 'widthM', 'pavement', 'region'],
-    renovation: ['type', 'area', 'floorsAffected', 'rooms', 'ageYears', 'region']
+    villa: ['type', 'area', 'floors']
   }), [])
 
   const setField = (name, value) => {
-    if (selectedProject === 'villa') setVillaData(prev => ({ ...prev, [name]: value }))
+    setVillaData(prev => ({ ...prev, [name]: value }))
   }
 
   const requiredInvalid = useMemo(() => {
@@ -43,10 +38,8 @@ const RequirementModal = (props) => {
       projectType: 'Villa',
       area: Number(villaData.area),
       floors: Number(villaData.floors),
-      region: villaData.region,
-      quality: villaData.quality
     }
-    callParent(selectedProj);
+    handleSetProjectDetails(selectedProj);
   }
 
   return (
@@ -59,7 +52,7 @@ const RequirementModal = (props) => {
       </Modal.Header>
       <Modal.Body>
         {selectedProject === 'villa' && (
-          <VillaForm villaData={villaData} requiredInvalid={requiredInvalid} setField={setField}/>
+          <IndependentHouseForm villaData={villaData} requiredInvalid={requiredInvalid} setField={setField}/>
         )}
       </Modal.Body>
       <Modal.Footer className="justify-content-between flex-wrap modal-footer-sticky">
@@ -67,9 +60,9 @@ const RequirementModal = (props) => {
           {requiredInvalid.length > 0 && (
             <span className="text-danger small">Please fill required fields</span>
           )}
-          <Button variant="primary" size="lg" className="rounded" onClick={onNextFromRequirements}>
+          <Button variant="primary" size="sm" className="rounded" onClick={onNextFromRequirements}>
             <i className="bi bi-gear-fill me-2"></i>
-            Next: Select Specifications
+            Next
           </Button>
         </div>
       </Modal.Footer>
