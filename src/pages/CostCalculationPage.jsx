@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Button, Card } from 'react-bootstrap';
-import CostBreakdown from '../components/CostBreakdown';
+import CostBreakdown from '../components/CostBreakdown/CostBreakdown';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 

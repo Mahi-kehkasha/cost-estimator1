@@ -1,7 +1,6 @@
 import React from 'react';
 import { Table, Card } from 'react-bootstrap';
 
-// Helper function to convert number to words
 const numberToWords = (num) => {
   const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
   const teens = ['Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];

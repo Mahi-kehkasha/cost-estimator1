@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
-import StepBadge from '../components/StepBadge';
+import StepBadge from '../../components/StepBadge/StepBadge';
 
 const Stepper = ({ step }) => (
   <Row className="g-3 justify-content-center mb-4 mb-md-5">

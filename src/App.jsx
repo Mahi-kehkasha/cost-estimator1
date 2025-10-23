@@ -1,10 +1,10 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
-import Header from './components/Header';
-import Stepper from './containers/Stepper';
-import ProjectTypeSelection from './containers/ProjectTypeSelection';
-import ProjectSpecificationStep from './containers/ProjectSpecificationStep';
-import EstimationSummaryStep from './containers/EstimationSummaryStep';
+import Header from './components/Header/Header';
+import Stepper from './containers/Stepper/Stepper';
+import ProjectTypeSelection from './containers/ProjectTypeSelection/ProjectTypeSelection';
+import ProjectSpecificationStep from './containers/ProjectSpecificationStep/ProjectSpecificationStep';
+import EstimationSummaryStep from './containers/EstimationSummaryStep/EstimationSummaryStep';
 import RequirementModal from './components/Modals/RequirementModal';
 import { useProjectState } from './hooks/useProjectState';
 
