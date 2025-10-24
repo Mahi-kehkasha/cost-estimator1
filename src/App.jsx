@@ -36,7 +36,7 @@ export default function App() {
   return (
     <div className="bg-body-tertiary min-vh-100 py-4 py-md-5">
       <Container>
-        <Header />
+        
         <Stepper step={step} />
         {step === 1 && (
           <ProjectTypeSelection projectTypes={projectTypes} openProjectModal={openProjectModal} />
