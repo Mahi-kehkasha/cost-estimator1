@@ -1,36 +1,19 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, Accordion, Table, Button, Badge, Form, InputGroup } from "react-bootstrap";
-
+import TotalPrice from "./TotalPrice/TotalPrice";
 // EstimatorViewerBootstrapSampleData.jsx
 // React-Bootstrap component that displays a materials-only estimator JSON (sample provided by user).
 // Usage: <EstimatorViewerBootstrapSampleData data={estimationJson} />
 // If no `data` prop is provided, it uses the sample JSON supplied by the user.
 
 export default function EstimatorViewerBootstrapSampleData({ data: initialData }) {
-  const sampleData = initialData || {
-    materials: [
-      { item: "Bricks", unit: "number", quantity: 7000, rate_in_inr: 6.6, total_cost_in_inr: 46200, notes: "used for walls (external + internal)" },
-      { item: "Cement", unit: "bags", quantity: 70, rate_in_inr: 350, total_cost_in_inr: 24500, notes: "used for RCC, plaster, mortar, etc." },
-      { item: "Sand", unit: "cubic_feet", quantity: 250, rate_in_inr: 35, total_cost_in_inr: 8750, notes: "used for plastering and concrete work" },
-      { item: "Steel (TMT)", unit: "kg", quantity: 550, rate_in_inr: 70, total_cost_in_inr: 38500, notes: "used for structural support" },
-      { item: "Aggregate", unit: "cubic_feet", quantity: 450, rate_in_inr: 45, total_cost_in_inr: 20250, notes: "used for concrete works" },
-      { item: "Flooring Tiles", unit: "sqft", quantity: 1000, rate_in_inr: 50, total_cost_in_inr: 50000, notes: "used for flooring throughout the house" },
-      { item: "Paint", unit: "litres", quantity: 100, rate_in_inr: 120, total_cost_in_inr: 12000, notes: "used for interior and exterior painting" },
-      { item: "Doors & Windows", unit: "set", quantity: 6, rate_in_inr: 15000, total_cost_in_inr: 90000, notes: "includes main door, internal doors, and windows" },
-      { item: "Electrical Material", unit: "lumpsum", quantity: 1, rate_in_inr: 25000, total_cost_in_inr: 25000, notes: "includes wiring, fixtures, and switches" },
-      { item: "Plumbing Material", unit: "lumpsum", quantity: 1, rate_in_inr: 20000, total_cost_in_inr: 20000, notes: "includes pipes, fittings, and fixtures" }
-    ],
-    total_estimated_cost_in_inr: 287650,
-    notes: "Estimation is approximate and based on Indian average standards for Bengaluru."
-  };
-
-  const [estimation, setEstimation] = useState(sampleData);
+  const [estimation, setEstimation] = useState(initialData);
   const [query, setQuery] = useState("");
   const [expandedIndex, setExpandedIndex] = useState(null);
 
   const formatINR = (v) => (typeof v === 'number' ? `₹${v.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` : v);
 
-  const filtered = estimation.materials.filter((m) => m.item.toLowerCase().includes(query.toLowerCase()));
+  const filtered = estimation.materials_and_labour_breakdown.filter((m) => m.item.toLowerCase().includes(query.toLowerCase()));
 
   const downloadJSON = () => {
     const blob = new Blob([JSON.stringify(estimation, null, 2)], { type: 'application/json' });
@@ -40,7 +23,7 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
   };
 
   const downloadCSV = () => {
-    const rows = [['Item','Unit','Quantity','Rate','Total','Notes'], ...estimation.materials.map(m => [m.item, m.unit, m.quantity, m.rate_in_inr, m.total_cost_in_inr, m.notes])];
+    const rows = [['Item','Unit','Quantity','Rate','Total','Notes'], ...estimation.materials_and_labour_breakdown.map(m => [m.item, m.unit, m.quantity, m.rate_in_inr, m.total_cost_in_inr, m.notes])];
     const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -51,8 +34,7 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
     <Container className="py-4">
       <Row className="mb-3 align-items-center">
         <Col>
-          <h3 className="mb-0">Material Estimation</h3>
-          <div className="text-muted">Material-only breakdown • Beautiful card + accordion view</div>
+          <h3 className="mb-0">Material and Labour Estimation</h3>
         </Col>
         <Col xs="auto">
           <Button variant="outline-primary" className="me-2" onClick={() => { navigator.clipboard.writeText(JSON.stringify(estimation, null, 2)); alert('JSON copied to clipboard'); }}>Copy JSON</Button>
@@ -63,13 +45,8 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
 
       <Row className="mb-3">
         <Col md={4}>
-          <Card className="mb-3 shadow-sm">
-            <Card.Body>
-              <Card.Title>Total Estimated Cost</Card.Title>
-              <h2 className="fw-bold">{formatINR(estimation.total_estimated_cost_in_inr)}</h2>
-              <div className="text-muted small mt-2">{estimation.notes}</div>
-            </Card.Body>
-          </Card>
+          
+          <TotalPrice financial_summary={estimation.financial_summary}/>
 
           <Card className="shadow-sm">
             <Card.Body>
@@ -79,7 +56,7 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
                 <Button variant="outline-secondary" onClick={() => setQuery('')}>Clear</Button>
               </InputGroup>
               <div className="d-flex flex-wrap gap-2">
-                <Badge bg="secondary">{estimation.materials.length} items</Badge>
+                <Badge bg="secondary">{estimation.materials_and_labour_breakdown.length} items</Badge>
                 <Badge bg="info">Materials only</Badge>
               </div>
             </Card.Body>
@@ -88,6 +65,7 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
 
         <Col md={8}>
           <Accordion defaultActiveKey="0">
+            {JSON.stringify(filtered) === '[]' && (<div className="text-center text-muted">No items match your search.</div>)}
             {filtered.map((m, idx) => (
               <Accordion.Item eventKey={idx.toString()} key={idx} onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}>
                 <Accordion.Header>
@@ -150,10 +128,6 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
             ))}
           </Accordion>
         </Col>
-      </Row>
-
-      <Row>
-        <Col className="text-center text-muted small">Tip: pass your own JSON as the <code>data</code> prop to the component to visualize your estimator output.</Col>
       </Row>
     </Container>
   );

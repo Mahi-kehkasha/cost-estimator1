@@ -1,0 +1,19 @@
+/* Card Styling */
+.total-price-card {
+    border-left: 5px solid #007bff;
+    background-color: #ffffff;
+    border-radius: 8px;
+  }
+  
+  /* Table Styling */
+  .total-price-card table {
+    font-size: 1rem;
+  }
+  
+  .total-price-card td {
+    vertical-align: middle;
+  }
+  
+  .total-price-card .text-success {
+    font-size: 1.2rem;
+  }
