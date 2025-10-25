@@ -1,9 +1,9 @@
 import React from 'react';
-import { Container, Navbar, Card } from 'react-bootstrap';
+import { Container, Navbar, Card, Row, Col } from 'react-bootstrap';
 import Header from './components/Header/Header';
 import Stepper from './containers/Stepper/Stepper';
 import ProjectTypeSelection from './containers/ProjectTypeSelection/ProjectTypeSelection';
-import ProjectSpecificationStep from './containers/ProjectSpecificationStep/ProjectSpecificationStep';
+import DraftEstimate from './containers/DraftEstimate/DraftEstimate';
 import EstimationSummaryStep from './containers/EstimationSummaryStep/EstimationSummaryStep';
 import RequirementModal from './components/Modals/RequirementModal';
 import { useProjectState } from './hooks/useProjectState';
@@ -36,27 +36,39 @@ export default function App() {
   } = useProjectState();
 
   return (
-    <div className="bg-body-tertiary min-vh-100 py-4 py-md-5">
-      <Container>
-        <Navbar.Brand href="/">
-          <img
-            src={logo}
-            alt="Bee Progress Logo"
-            className="app-logo"
-            style={{ height: '40px', marginRight: '10px' }} />
-          <span className="fw-bold text-primary">Bee Progress</span>
-        </Navbar.Brand>
+    <div className="bg-body-tertiary min-vh-100 d-flex flex-column">
+      {/* Header Section */}
+      <header className="bg-primary text-white py-3">
+        <Container>
+          <Row className="align-items-center">
+            <Col xs="auto">
+              <img
+                src={logo}
+                alt="Builder Bro Logo"
+                className="app-logo"
+                style={{ height: '50px', marginRight: '10px' }}
+              />
+            </Col>
+            <Col>
+              <h1 className="mb-0 fw-bold">Builder Bro</h1>
+              <p className="mb-0 small">Your trusted construction cost estimator</p>
+            </Col>
+          </Row>
+        </Container>
+      </header>
 
-        <Stepper step={step} />
-        <Card className="shadow-sm">
-          <Card.Body>
-            {step === 1 && (
-              <ProjectTypeSelection projectTypes={projectTypes} openProjectModal={openProjectModal} />
-            )}
+      {/* Main Content */}
+      <main className="flex-grow-1 py-4">
+        <Container>
+          <Stepper step={step} />
+          <Card className="shadow-sm">
+            <Card.Body>
+              {step === 1 && (
+                <ProjectTypeSelection projectTypes={projectTypes} openProjectModal={openProjectModal} />
+              )}
 
-            {step === 2 && (
-              <>
-                <ProjectSpecificationStep
+              {step === 2 && (
+                <DraftEstimate
                   specFeatures={specFeatures}
                   specSelections={specSelections}
                   specQuantities={specQuantities}
@@ -71,28 +83,44 @@ export default function App() {
                   onBack={() => setStep(1)}
                   onNext={handleEstimate}
                 />
-              </>
-            )}
+              )}
 
-            {step === 3 && (
-              <EstimationSummaryStep
-                estimate={estimate}
-                selectedProject={selectedProject}
-                step={step}
-              />
-            )}
+              {step === 3 && (
+                <EstimationSummaryStep
+                  estimate={estimate}
+                  selectedProject={selectedProject}
+                  step={step}
+                />
+              )}
 
-            {showModal && (
-              <RequirementModal
-                showModal={showModal}
-                hideModal={closeModal}
-                selectedProject={selectedProject}
-                handleSetProjectDetails={handleSetProjectDetails}
-              />
-            )}
-          </Card.Body>
-        </Card>
-      </Container>
+              {showModal && (
+                <RequirementModal
+                  showModal={showModal}
+                  hideModal={closeModal}
+                  selectedProject={selectedProject}
+                  handleSetProjectDetails={handleSetProjectDetails}
+                />
+              )}
+            </Card.Body>
+          </Card>
+        </Container>
+      </main>
+
+      {/* Footer Section */}
+      <footer className="bg-dark text-white py-3">
+        <Container>
+          <Row className="align-items-center">
+            <Col>
+              <p className="mb-0 small">
+                &copy; {new Date().getFullYear()} Builder Bro. All rights reserved.
+              </p>
+            </Col>
+            <Col xs="auto">
+              <p className="mb-0 small">Powered by Aril Ventures</p>
+            </Col>
+          </Row>
+        </Container>
+      </footer>
     </div>
   );
 }

@@ -1,14 +1,15 @@
 /* General App Styling */
-.app {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    min-height: 100vh;
-  }
-  
-  /* Logo Styling */
-  .app-logo {
-    height: 40px;
-    width: auto;
-    display: inline-block;
-    vertical-align: middle;
-  }
+.app-logo {
+  height: 50px;
+  width: auto;
+}
+
+header {
+  background-color: #007bff;
+  color: white;
+}
+
+footer {
+  background-color: #343a40;
+  color: white;
+}

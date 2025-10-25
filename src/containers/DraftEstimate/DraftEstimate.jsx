@@ -1,5 +1,5 @@
 import React from 'react';
-import ProjectSpecifications from '../../components/ProjectSpecifications/ProjectSpecifications';
+import DraftEstimateSpecifications from '../../components/DraftEstimateSpecifications/DraftEstimateSpecifications';
 
 const ProjectSpecificationStep = ({
   specFeatures,
@@ -16,7 +16,7 @@ const ProjectSpecificationStep = ({
   onBack,
   onNext,
 }) => (
-  <ProjectSpecifications
+  <DraftEstimateSpecifications
     selectedProjDetails={selectedProjDetails}
   />
 );
