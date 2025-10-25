@@ -7,7 +7,7 @@ import { Card, Row, Col, Badge } from "react-bootstrap";
 
 export default function ProjectInfoCard({ project }) {
   const defaultProject = {
-    projectType: "Independent Floor",
+    projectType: "Independent House",
     area: 1200,
     floors: 1,
     bedrooms: 2,
@@ -18,13 +18,13 @@ export default function ProjectInfoCard({ project }) {
 
   // Optional image suggestions based on projectType
   const imageSuggestions = {
-    "Independent Floor": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    "Independent House": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
     "Apartment": "https://images.unsplash.com/photo-1599423300746-b62533397364?auto=format&fit=crop&w=1200&q=80",
     "Villa": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
   };
 
   const imageUrl =
-    imageSuggestions[p.projectType] || imageSuggestions["Independent Floor"];
+    imageSuggestions[p.projectType] || imageSuggestions["Independent House"];
 
   return (
     <Card className="shadow-sm border-0 overflow-hidden mb-4">

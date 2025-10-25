@@ -8,10 +8,10 @@ const Stepper = ({ step }) => (
       <StepBadge number={1} label="Select Your Project Type" active={step === 1} />
     </Col>
     <Col xs={6} md={3}>
-      <StepBadge number={2} label="Specify your project" active={step === 2} />
+      <StepBadge number={2} label="Get Draft Estimate" active={step === 2} />
     </Col>
     <Col xs={6} md={3}>
-      <StepBadge number={3} label="Estimator Summary" active={step === 3} />
+      <StepBadge number={3} label="Prepare Accurate Estimate" active={step === 3} />
     </Col>
   </Row>
 );

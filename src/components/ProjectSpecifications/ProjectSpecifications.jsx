@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Row, Col, Button, Spinner, Container, Card, Table } from 'react-bootstrap';
 import OpenAI from 'openai';
 import base64 from 'base-64';
@@ -8,9 +8,13 @@ import ChatGPTInputSummary from '../ChatGPTInputSummary/ChatGPTInputSummary';
 
 const ProjectSpecifications = ({ selectedProjDetails }) => {
   const [chatgptRes, setChatGptResp] = useState(null);
-  const [fetchingDetails, setFetchingDetails] = useState(false);
+  const [fetchingDetails, setFetchingDetails] = useState(true);
+  const hasFetched = useRef(false);
   useEffect(() => {
-    getDataFromChatGPT();
+    if (!hasFetched.current) {
+      hasFetched.current = true; 
+      getDataFromChatGPT();
+    }
     // getHouseImage();
   }, []);
 
@@ -27,12 +31,12 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
 
   // Function to fetch data from ChatGPT
   async function getDataFromChatGPT() {
-    setFetchingDetails(true);
     try {
+      console.log("CALLS");
       const response = await client.responses.parse({
         prompt: {
           "id": "pmpt_68fa258429388190915466521773cbfb0031ef9bf4dd0f6d",
-          "version": "27",
+          "version": "28",
           "variables": {
             "builtuparea": `${selectedProjDetails.area} sq.ft`,
             "rooms": `${selectedProjDetails.bedrooms}`,
@@ -298,7 +302,6 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
           }
         },
       });
-      console.log(response.output_parsed);
       setChatGptResp(response.output_parsed);
     } catch (error) {
       console.error('Error fetching data from ChatGPT:', error);
@@ -308,7 +311,7 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
     }
   }
 
-  async function getHouseImage() {
+  /*async function getHouseImage() {
     setFetchingDetails(true);
 
     const response = await client.responses.create({
@@ -336,7 +339,7 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
     console.log(response);
     setFetchingDetails(false);
 
-  }
+  }*/
 
   return (
     <Container className="py-4">
@@ -378,9 +381,6 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
                             <Card.Body>
                               <Container className="fs-5 text-success">
                                 <ChatGPTResponse data={chatgptRes} />
-                                <pre>
-                                  {JSON.stringify(chatgptRes, null, 2)}
-                                </pre>
                               </Container>
                             </Card.Body>
                           </Card>
