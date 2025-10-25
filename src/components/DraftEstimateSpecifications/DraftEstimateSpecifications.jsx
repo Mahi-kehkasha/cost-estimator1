@@ -6,7 +6,7 @@ import { Chat } from 'openai/resources/index';
 import ChatGPTResponse from '../ChatGPTResponse/ChatGPTResponse';
 import ChatGPTInputSummary from '../ChatGPTInputSummary/ChatGPTInputSummary';
 
-const ProjectSpecifications = ({ selectedProjDetails }) => {
+const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) => {
   const [chatgptRes, setChatGptResp] = useState(null);
   const [fetchingDetails, setFetchingDetails] = useState(true);
   const hasFetched = useRef(false);
@@ -396,8 +396,11 @@ const ProjectSpecifications = ({ selectedProjDetails }) => {
           </Row>
         </Col>
       </Row>
+      <Row>
+        <Button variant="primary" onClick={()=>goToReviewDraft(chatgptRes)}>Next</Button>
+      </Row>
     </Container >
   );
 };
 
-export default ProjectSpecifications;
+export default DraftEstimateSpecifications;

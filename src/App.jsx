@@ -1,31 +1,25 @@
-import React from 'react';
-import { Container, Navbar, Card, Row, Col } from 'react-bootstrap';
-import Header from './components/Header/Header';
+import React, { useState } from 'react';
+import { Container, Navbar, Card, Row, Col, Button, Dropdown } from 'react-bootstrap';
 import Stepper from './containers/Stepper/Stepper';
 import ProjectTypeSelection from './containers/ProjectTypeSelection/ProjectTypeSelection';
 import DraftEstimate from './containers/DraftEstimate/DraftEstimate';
-import EstimationSummaryStep from './containers/EstimationSummaryStep/EstimationSummaryStep';
+import ApproveRejectDraft from './containers/ApproveRejectDraft/ApproveRejectDraft';
 import RequirementModal from './components/Modals/RequirementModal';
 import { useProjectState } from './hooks/useProjectState';
 import './App.css'; // Optional: Add custom styles
 import logo from './assets/beeProgress.png'; // Import the logo
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
+  const [user, setUser] = useState(null); // Store user data (e.g., profile photo)
+
   const {
     step,
     setStep,
     selectedProject,
     showModal,
     setPackageTier,
-    estimate,
     projectTypes,
-    specFeatures,
-    specSelections,
-    specQuantities,
-    packageTier,
-    quantityPreset,
-    specTable,
-    handleEstimate,
     setSpec,
     applyTierToAll,
     setQuantity,
@@ -33,7 +27,24 @@ export default function App() {
     closeModal,
     handleSetProjectDetails,
     selectedProjDetails,
+    goToReviewDraft,
+    recievedDraftEstimation
   } = useProjectState();
+
+  // Simulate login
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setUser({
+      name: 'Yunus',
+      profilePhoto: logo, // Placeholder profile photo
+    });
+  };
+
+  // Simulate logout
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+  };
 
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-column">
@@ -53,6 +64,30 @@ export default function App() {
               <h1 className="mb-0 fw-bold">Builder Bro</h1>
               <p className="mb-0 small">Your trusted construction cost estimator</p>
             </Col>
+            <Col xs="auto">
+              {/* Login/Profile Section */}
+              {isLoggedIn ? (
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="outline-light" id="dropdown-basic" className="d-flex align-items-center">
+                    <img
+                      src={user.profilePhoto}
+                      alt="Profile"
+                      className="rounded-circle"
+                      style={{ height: '40px', width: '40px', marginRight: '10px' }}
+                    />
+                    <span className="text-white">{user.name}</span>
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              ) : (
+                <Button variant="outline-light" onClick={handleLogin}>
+                  Login
+                </Button>
+              )}
+            </Col>
           </Row>
         </Container>
       </header>
@@ -69,28 +104,18 @@ export default function App() {
 
               {step === 2 && (
                 <DraftEstimate
-                  specFeatures={specFeatures}
-                  specSelections={specSelections}
-                  specQuantities={specQuantities}
-                  packageTier={packageTier}
-                  quantityPreset={quantityPreset}
-                  specTable={specTable}
-                  setSpec={setSpec}
-                  setQuantity={setQuantity}
-                  applyTierToAll={applyTierToAll}
-                  setPackageTier={setPackageTier}
                   selectedProjDetails={selectedProjDetails}
-                  onBack={() => setStep(1)}
-                  onNext={handleEstimate}
+                  goToReviewDraft={goToReviewDraft}
                 />
               )}
 
               {step === 3 && (
-                <EstimationSummaryStep
-                  estimate={estimate}
-                  selectedProject={selectedProject}
-                  step={step}
-                />
+                <>
+                  <ApproveRejectDraft
+                    recievedDraftEstimation={recievedDraftEstimation}
+                  />
+                </>
+
               )}
 
               {showModal && (

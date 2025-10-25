@@ -1,24 +1,14 @@
 import React from 'react';
 import DraftEstimateSpecifications from '../../components/DraftEstimateSpecifications/DraftEstimateSpecifications';
 
-const ProjectSpecificationStep = ({
-  specFeatures,
-  specSelections,
-  specQuantities,
-  packageTier,
-  quantityPreset,
-  specTable,
-  setSpec,
-  setQuantity,
-  applyTierToAll,
-  setPackageTier,
+const DraftEstimate = ({
   selectedProjDetails,
-  onBack,
-  onNext,
+  goToReviewDraft
 }) => (
   <DraftEstimateSpecifications
     selectedProjDetails={selectedProjDetails}
+    goToReviewDraft={goToReviewDraft}
   />
 );
 
-export default ProjectSpecificationStep;
+export default DraftEstimate;
