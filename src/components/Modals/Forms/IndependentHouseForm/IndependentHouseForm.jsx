@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import { houseTypes } from './data/constants/presets';
 
-const VillaForm = ({ villaData, requiredInvalid, setField }) => {
+const HouseForm = ({ houseData, requiredInvalid, setField }) => {
     // Helper function to generate options for a select dropdown
     const generateOptions = (options) => {
         return options.map((option) => (
@@ -22,7 +22,7 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
                 <Col md={6} sm={12}>
                     <Form.Label className="fw-semibold">Type *</Form.Label>
                     <Form.Select
-                        value={villaData.type}
+                        value={houseData.type}
                         onChange={(e) => setField('type', e.target.value)}
                         className={isInvalid('type')}
                     >
@@ -38,12 +38,12 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
                         <Form.Control
                             type="number"
                             placeholder="Enter area"
-                            value={villaData.area}
+                            value={houseData.area}
                             onChange={(e) => setField('area', e.target.value)}
                             className={isInvalid('area')}
                         />
                         <Form.Select
-                            value={villaData.unit}
+                            value={houseData.unit}
                             onChange={(e) => setField('unit', e.target.value)}
                             style={{ maxWidth: 120 }}
                         >
@@ -57,7 +57,7 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
                 <Col md={4} sm={12}>
                     <Form.Label className="fw-semibold">Floors *</Form.Label>
                     <Form.Select
-                        value={villaData.floors}
+                        value={houseData.floors}
                         onChange={(e) => setField('floors', e.target.value)}
                         className={isInvalid('floors')}
                     >
@@ -76,7 +76,7 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
                     <Form.Control
                         type="number"
                         placeholder="Enter bedrooms"
-                        value={villaData.bedrooms}
+                        value={houseData.bedrooms}
                         onChange={(e) => setField('bedrooms', e.target.value)}
                     />
                 </Col>
@@ -87,7 +87,7 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
                     <Form.Control
                         type="number"
                         placeholder="Enter bathrooms"
-                        value={villaData.bathrooms}
+                        value={houseData.bathrooms}
                         onChange={(e) => setField('bathrooms', e.target.value)}
                     />
                 </Col>
@@ -97,4 +97,4 @@ const VillaForm = ({ villaData, requiredInvalid, setField }) => {
     );
 };
 
-export default VillaForm;
+export default HouseForm;

@@ -1,0 +1,15 @@
+/* General App Styling */
+.app-logo {
+  height: 50px;
+  width: auto;
+}
+
+header {
+  background-color: #007bff;
+  color: white;
+}
+
+footer {
+  background-color: #343a40;
+  color: white;
+}

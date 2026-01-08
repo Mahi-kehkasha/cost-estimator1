@@ -1,5 +1,5 @@
 export const initialVillaForm = {
-    type: 'Independent Floor',
+    type: 'Independent House',
     area: 1200,
     unit: 'sq.ft',
     floors: 1,

@@ -1,133 +1,163 @@
-import React from 'react';
-import { Row, Col, Card, Button, Badge } from 'react-bootstrap'
+import React, { useState, useEffect } from 'react';
+import { Accordion, Card, Table, Form, Button, Row, Col } from 'react-bootstrap';
 
-const EstimatorSummary = ({ estimate, selectedProject, step }) => (
-  <Card className="shadow-sm border-success mb-4">
+const EstimatorSummary = ({ recievedDraftEstimation }) => {
+  const [editableData, setEditableData] = useState(recievedDraftEstimation);
 
-    <Card.Header className="bg-success text-white">
-      <div className="d-flex align-items-center gap-2">
-        <i className="bi bi-calculator-fill"></i>
-        <h5 className="mb-0">📊 {step === 4 ? 'Estimator Summary' : 'Auto-Calculated Estimate'}</h5>
-        <Badge bg="light" text="dark" className="ms-auto">
-          {selectedProject.charAt(0).toUpperCase() + selectedProject.slice(1)} Project
-        </Badge>
-      </div>
-    </Card.Header>
-    <Card.Body>
-      <Row className="mb-4">
-        <Col md={8}>
-          <div className="h5 mb-3">🏗️ Project Summary</div>
-          <Row>
-            <Col sm={6} md={3}>
-              <div className="fw-bold text-primary">Built-up Area</div>
-              <div className="h6">{estimate.totalArea.toLocaleString()} sqft</div>
-            </Col>
-            <Col sm={6} md={2}>
-              <div className="fw-bold text-primary">Floors</div>
-              <div className="h6">{estimate.floors}</div>
-            </Col>
-            <Col sm={6} md={3}>
-              <div className="fw-bold text-primary">Quality</div>
-              <div className="h6">{estimate.qualityFactor}x Multiplier</div>
-            </Col>
-            <Col sm={6} md={4}>
-              <div className="fw-bold text-primary">Region</div>
-              <div className="h6">{estimate.regionFactor}x Multiplier</div>
-            </Col>
-          </Row>
-        </Col>
-        <Col md={4}>
-          <div className="h5 mb-3">💰 Cost Breakdown</div>
-          <div className="border-start border-3 border-success ps-3">
-            <div className="fw-bold">₹{estimate.costPerSqft.toLocaleString()} per sqft</div>
-            <div className="h4 text-success mb-0">₹{estimate.totalCost.toLocaleString()}</div>
-            <small className="text-muted">Total Construction Cost</small>
-          </div>
-        </Col>
-      </Row>
+  useEffect(() => {
+    const updatedData = { ...editableData };
+    const totalSubCost = updatedData.materials_and_labour_breakdown.reduce(
+      (sum, material) => sum + material.total_cost_in_inr,
+      0
+    );
+    updatedData.financial_summary.total_sub_cost_in_inr = totalSubCost;
+    updatedData.financial_summary.contingency_cost_in_inr = (totalSubCost * updatedData.project_info.contingency_percent) / 100;
+    updatedData.financial_summary.grand_total_cost_in_inr =
+      totalSubCost + updatedData.financial_summary.contingency_cost_in_inr;
+    updatedData.financial_summary.cost_per_sqft_in_inr =
+      updatedData.financial_summary.grand_total_cost_in_inr / updatedData.project_info.builtup_area_sqft;
 
-      {/* Material Breakdown Table */}
-      <div className="mt-4">
-        <h6 className="mb-3">📊 Material Quantities & Costs</h6>
-        <div className="table-responsive">
-          <table className="table table-sm table-striped">
-            <thead className="table-dark">
-              <tr>
-                <th>Material</th>
-                <th className="text-end">Quantity</th>
-                <th className="text-end">Unit</th>
-                <th className="text-end">Base Rate (₹)</th>
-                <th className="text-end">Adjusted Rate (₹)</th>
-                <th className="text-end">Subtotal (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(estimate.materialGroups).map(([groupName, materials]) => {
-                if (materials.length === 0) return null;
-                return (
-                  <React.Fragment key={groupName}>
-                    <tr className="table-info">
-                      <td colSpan={6} className="fw-bold text-center">
-                        🏗️ {groupName} Materials
+    setEditableData(updatedData);
+  }, [editableData.materials_and_labour_breakdown]);
+
+  // Handle input changes for editable fields
+  const handleInputChange = (index, field, value) => {
+    const updatedData = { ...editableData };
+    const material = updatedData.materials_and_labour_breakdown[index];
+
+    // Update the field
+    material[field] = field === 'quantity' || field === 'rate_in_inr' ? parseFloat(value) : value;
+
+    // Recalculate derived fields
+    if (field === 'quantity' || field === 'rate_in_inr') {
+      material.total_cost_in_inr = material.quantity * material.rate_in_inr;
+    }
+
+    setEditableData(updatedData);
+  };
+
+  // Save changes (rebuild JSON)
+  const handleSave = () => {
+    console.log('Updated JSON:', editableData);
+    alert('Changes saved successfully!');
+  };
+
+  return (
+    <Card className="shadow-sm border-success mb-4">
+      <Card.Body>
+        <Card.Title className="text-primary fw-bold">Estimator Summary</Card.Title>
+
+        <Accordion defaultActiveKey="0" className="mt-4">
+          {/* Project Information */}
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Project Information</Accordion.Header>
+            <Accordion.Body>
+              <Table bordered hover className="mb-0">
+                <tbody>
+                  {Object.entries(editableData.project_info).map(([key, value]) => (
+                    <tr key={key}>
+                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
+
+          {/* Materials and Labour Breakdown */}
+          <Accordion.Item eventKey="1">
+            <Accordion.Header>Materials and Labour Breakdown</Accordion.Header>
+            <Accordion.Body>
+              <Table bordered hover className="mb-0">
+                <thead>
+                  <tr className="table-primary">
+                    <th>Item</th>
+                    <th>Unit</th>
+                    <th>Quantity</th>
+                    <th>Rate (INR)</th>
+                    <th>Total Cost (INR)</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editableData.materials_and_labour_breakdown.map((material, index) => (
+                    <tr key={index}>
+                      <td>{material.item}</td>
+                      <td>{material.unit}</td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          value={material.quantity}
+                          onChange={(e) => handleInputChange(index, 'quantity', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          value={material.rate_in_inr}
+                          onChange={(e) => handleInputChange(index, 'rate_in_inr', e.target.value)}
+                        />
+                      </td>
+                      <td>₹ {material.total_cost_in_inr.toLocaleString()}</td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          value={material.notes}
+                          onChange={(e) => handleInputChange(index, 'notes', e.target.value)}
+                        />
                       </td>
                     </tr>
-                    {materials.map((detail) => (
-                      <tr key={detail.material}>
-                        <td className="fw-semibold">{detail.material}</td>
-                        <td className="text-end">{detail.qty.toLocaleString()}</td>
-                        <td className="text-end">{detail.unit}</td>
-                        <td className="text-end">₹{detail.baseRate.toLocaleString()}</td>
-                        <td className="text-end">₹{detail.adjustedRate.toLocaleString()}</td>
-                        <td className="text-end fw-bold">₹{detail.subtotal.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-            <tfoot className="table-dark">
-              <tr>
-                <th colSpan={5} className="text-end">Total Project Cost</th>
-                <th className="text-end">₹{estimate.totalCost.toLocaleString()}</th>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
+                  ))}
+                </tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
 
-      <div className="alert alert-info mt-3 mb-0">
-        <div className="d-flex align-items-center justify-content-between">
-          <div className="d-flex align-items-center">
-            <i className="bi bi-info-circle-fill me-2"></i>
-            <div>
-              <strong>Note:</strong> Values are approximate; approx. 5–10% area may be used for setbacks or open space.
-              Final costs may vary based on site-specific conditions and material availability.
-              <strong> Approx ±10% variation possible depending on design and site conditions.</strong>
-            </div>
-          </div>
-          <div className="d-flex gap-2 ms-3">
-            {step === 2 && (
-              <Button
-                variant="outline-light"
-                size="sm"
-                onClick={() => setStep(3)}
-              >
-                Next: Specifications
-              </Button>
-            )}
-            <Button
-              variant="outline-primary"
-              size="sm"
-              onClick={() => window.print()}
-            >
-              <i className="bi bi-download me-1"></i>
-              {step === 3 ? 'Download Report' : 'Download PDF'}
-            </Button>
-          </div>
+          {/* Thumb Rules */}
+          <Accordion.Item eventKey="2">
+            <Accordion.Header>Thumb Rules Applied</Accordion.Header>
+            <Accordion.Body>
+              <Table bordered hover className="mb-0">
+                <tbody>
+                  {Object.entries(editableData.thumb_rules_applied).map(([key, value]) => (
+                    <tr key={key}>
+                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
+
+          {/* Financial Summary */}
+          <Accordion.Item eventKey="3">
+            <Accordion.Header>Financial Summary</Accordion.Header>
+            <Accordion.Body>
+              <Table bordered hover className="mb-0">
+                <tbody>
+                  {Object.entries(editableData.financial_summary).map(([key, value]) => (
+                    <tr key={key}>
+                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                      <td>₹ {value.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
+
+        {/* Save Button */}
+        <div className="text-end mt-4">
+          <Button variant="success" onClick={handleSave}>
+            Save Changes
+          </Button>
         </div>
-      </div>
-    </Card.Body>
-  </Card>
-);
+      </Card.Body>
+    </Card>
+  );
+};
 
 export default EstimatorSummary;

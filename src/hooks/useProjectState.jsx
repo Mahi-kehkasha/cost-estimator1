@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { calculateEstimation } from '../utils/utils';
 import { detailedPrices } from '../data/constants/detailedPrices';
 import { projectTypeData } from '../data/constants/projectTypes';
 
@@ -13,21 +12,12 @@ export const useProjectState = () => {
   const [specQuantities, setSpecQuantities] = useState({});
   const [packageTier, setPackageTier] = useState('Custom');
   const [quantityPreset, setQuantityPreset] = useState('Custom');
-
+  const [recievedDraftEstimation, setRecievedDraftEstimation] = useState(null);
   const projectTypes = useMemo(() => projectTypeData, []);
   const specTable = useMemo(() => detailedPrices, []);
   const specFeatures = useMemo(() => Object.keys(specTable), [specTable]);
 
-  const handleEstimate = () => {
-    if (selectedProjDetails) {
-      const result = calculateEstimation(selectedProjDetails);
-      setEstimate(result);
-    } else {
-      setEstimate(null);
-    }
-    setStep(3);
-  };
-
+  
   const setSpec = (feature, tier, value) => {
     setSpecSelections((prev) => ({ ...prev, [feature]: `${tier} - ${value}` }));
   };
@@ -48,6 +38,12 @@ export const useProjectState = () => {
   const openProjectModal = (key) => {
     setSelectedProject(String(key).toLowerCase());
     setShowModal(true);
+  };
+
+  const goToReviewDraft = (res)  => {
+    console.log(res);
+    setRecievedDraftEstimation(res);
+    setStep(3);
   };
 
   const closeModal = () => setShowModal(false);
@@ -80,12 +76,13 @@ export const useProjectState = () => {
     projectTypes,
     specTable,
     specFeatures,
-    handleEstimate,
     setSpec,
     applyTierToAll,
     setQuantity,
     openProjectModal,
     closeModal,
     handleSetProjectDetails,
+    goToReviewDraft,
+    recievedDraftEstimation
   };
 };

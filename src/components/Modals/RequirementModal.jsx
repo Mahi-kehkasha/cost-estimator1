@@ -6,7 +6,7 @@ import IndependentHouseForm from './Forms/IndependentHouseForm/IndependentHouseF
 const RequirementModal = (props) => {
 
   const { showModal, hideModal, handleSetProjectDetails, selectedProject } = props;
-  const [villaData, setVillaData] = useState(initialVillaForm)
+  const [houseData, setHouseData] = useState(initialVillaForm)
 
 
   const requiredKeysForProject = useMemo(() => ({
@@ -14,14 +14,14 @@ const RequirementModal = (props) => {
   }), [])
 
   const setField = (name, value) => {
-    setVillaData(prev => ({ ...prev, [name]: value }))
+    setHouseData(prev => ({ ...prev, [name]: value }))
   }
 
   const requiredInvalid = useMemo(() => {
     if (!selectedProject) return []
     const keys = requiredKeysForProject[selectedProject] || []
     const map = {
-      villa: villaData,
+      villa: houseData,
     }
     const form = map[selectedProject] || {}
     return keys.filter(k => {
@@ -29,15 +29,17 @@ const RequirementModal = (props) => {
       if (Array.isArray(v)) return v.length === 0
       return String(v ?? '').trim() === ''
     })
-  }, [selectedProject, villaData, requiredKeysForProject])
+  }, [selectedProject, houseData, requiredKeysForProject])
 
 
   const onNextFromRequirements = () => {
     if (requiredInvalid.length > 0) return
     const selectedProj = {
-      projectType: 'Villa',
-      area: Number(villaData.area),
-      floors: Number(villaData.floors),
+      projectType: houseData.type,
+      area: Number(houseData.area),
+      floors: Number(houseData.floors),
+      bedrooms: Number(houseData.bedrooms),
+      bathrooms: Number(houseData.bathrooms),
     }
     handleSetProjectDetails(selectedProj);
   }
@@ -47,13 +49,11 @@ const RequirementModal = (props) => {
       <Modal.Header closeButton>
         <Modal.Title className="d-flex align-items-center gap-2">
           <i className="bi bi-clipboard-check text-primary"></i>
-          {selectedProject === 'villa' ? 'Independent House' : 'Project Requirements'}
+          Independent House
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {selectedProject === 'villa' && (
-          <IndependentHouseForm villaData={villaData} requiredInvalid={requiredInvalid} setField={setField}/>
-        )}
+          <IndependentHouseForm houseData={houseData} requiredInvalid={requiredInvalid} setField={setField}/>
       </Modal.Body>
       <Modal.Footer className="justify-content-between flex-wrap modal-footer-sticky">
         <div className="d-flex align-items-center gap-2">
