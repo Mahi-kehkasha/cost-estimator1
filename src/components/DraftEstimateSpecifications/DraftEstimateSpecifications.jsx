@@ -292,12 +292,8 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
   const OPENAI_API_KEY = import.meta.env.VITE_NEXT_PUBLIC_OPENAI_API_KEY;
 
   
-  const OPENAI_API_KEY2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  // const OPENAI_API_KEY2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
  
-
-  if (OPENAI_API_KEY2) {
-    console.log(`OPENAI_API_KEY: ${OPENAI_API_KEY2}`);
-  }
 
   if (!OPENAI_API_KEY) {
     console.error('OPENAI_API_KEY2 API key is missing. Please check your .env file.');
