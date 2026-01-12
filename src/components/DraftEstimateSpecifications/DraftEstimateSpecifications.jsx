@@ -296,7 +296,7 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
  
 
   if (OPENAI_API_KEY2) {
-    console.log(`OPENAI_API_KEY2: ${OPENAI_API_KEY}`);
+    console.log(`OPENAI_API_KEY: ${OPENAI_API_KEY2}`);
   }
 
   if (!OPENAI_API_KEY) {
