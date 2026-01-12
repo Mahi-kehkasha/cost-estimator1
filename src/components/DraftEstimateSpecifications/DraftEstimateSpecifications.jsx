@@ -291,7 +291,7 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
 
   // const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
-  const OPENAI_API_KEY = process.env.NEXT_OPENAI_API_KEY;
+  const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
   if (!OPENAI_API_KEY) {
     console.error('OpenAI API key is missing. Please check your .env file.');
