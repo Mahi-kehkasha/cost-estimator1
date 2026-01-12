@@ -289,8 +289,10 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
     // getHouseImage();
   }, []);
 
-  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+  // const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
+  const OPENAI_API_KEY = process.env.VITE_OPENAI_API_KEY;
+  
   if (!OPENAI_API_KEY) {
     console.error('OpenAI API key is missing. Please check your .env file.');
   };
@@ -312,36 +314,6 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
       setFetchingDetails(false);
     }
   }
-
-  /*async function getHouseImage() {
-    setFetchingDetails(true);
-
-    const response = await client.responses.create({
-      prompt: {
-        "id": "pmpt_68fa5b5b68bc819482398043645f566807955c38d097999d",
-        "version": "14",
-        "variables": {
-          "rooms": "1",
-          "floor": "1"
-        }
-      },
-    });
-
-    // Save the image to a file
-    const imageData = response.output
-      .filter((output) => output.type === "image_generation_call")
-      .map((output) => output.result);
-
-    if (imageData.length > 0) {
-      const imageBase64 = imageData[0];
-      console.log("Image Base64:", imageBase64);
-      // const fs = await import("fs");
-      // fs.writeFileSync("cat_and_otter.png", Buffer.from(imageBase64, "base64"));
-    }
-    console.log(response);
-    setFetchingDetails(false);
-
-  }*/
 
   return (
     <Container className="py-4">
