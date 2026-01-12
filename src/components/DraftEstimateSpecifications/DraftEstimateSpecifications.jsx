@@ -289,7 +289,7 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
     // getHouseImage();
   }, []);
 
-  const OPENAI_API_KEY = import.meta.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  const OPENAI_API_KEY = import.meta.env.VITE_NEXT_PUBLIC_OPENAI_API_KEY;
 
   
   const OPENAI_API_KEY2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
