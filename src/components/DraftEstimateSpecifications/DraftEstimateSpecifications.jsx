@@ -291,7 +291,22 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
 
   const OPENAI_API_KEY = import.meta.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-  // const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  
+  const OPENAI_API_KEY2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+ 
+
+  if (OPENAI_API_KEY2) {
+    console.log(`OPENAI_API_KEY2: ${OPENAI_API_KEY}`);
+  }
+
+  if (!OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY2 API key is missing. Please check your .env file.');
+  };
+
+  // Use the variable
+  if (OPENAI_API_KEY) {
+    console.log(`API URL is: ${OPENAI_API_KEY}`);
+  }
 
   if (!OPENAI_API_KEY) {
     console.error('OpenAI API key is missing. Please check your .env file.');
