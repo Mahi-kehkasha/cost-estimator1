@@ -53,16 +53,18 @@ const EstimatorSummary = ({ recievedDraftEstimation }) => {
           <Accordion.Item eventKey="0">
             <Accordion.Header>Project Information</Accordion.Header>
             <Accordion.Body>
-              <Table bordered hover className="mb-0">
-                <tbody>
-                  {Object.entries(editableData.project_info).map(([key, value]) => (
-                    <tr key={key}>
-                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
-                      <td>{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              <div className="table-responsive">
+                <Table bordered hover className="mb-0">
+                  <tbody>
+                    {Object.entries(editableData.project_info).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                        <td>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
             </Accordion.Body>
           </Accordion.Item>
 
@@ -70,48 +72,53 @@ const EstimatorSummary = ({ recievedDraftEstimation }) => {
           <Accordion.Item eventKey="1">
             <Accordion.Header>Materials and Labour Breakdown</Accordion.Header>
             <Accordion.Body>
-              <Table bordered hover className="mb-0">
-                <thead>
-                  <tr className="table-primary">
-                    <th>Item</th>
-                    <th>Unit</th>
-                    <th>Quantity</th>
-                    <th>Rate (INR)</th>
-                    <th>Total Cost (INR)</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {editableData.materials_and_labour_breakdown.map((material, index) => (
-                    <tr key={index}>
-                      <td>{material.item}</td>
-                      <td>{material.unit}</td>
-                      <td>
-                        <Form.Control
-                          type="number"
-                          value={material.quantity}
-                          onChange={(e) => handleInputChange(index, 'quantity', e.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <Form.Control
-                          type="number"
-                          value={material.rate_in_inr}
-                          onChange={(e) => handleInputChange(index, 'rate_in_inr', e.target.value)}
-                        />
-                      </td>
-                      <td>₹ {material.total_cost_in_inr.toLocaleString()}</td>
-                      <td>
-                        <Form.Control
-                          type="text"
-                          value={material.notes}
-                          onChange={(e) => handleInputChange(index, 'notes', e.target.value)}
-                        />
-                      </td>
+              <div className="table-responsive">
+                <Table bordered hover className="mb-0">
+                  <thead>
+                    <tr className="table-primary">
+                      <th>Item</th>
+                      <th>Unit</th>
+                      <th>Quantity</th>
+                      <th>Rate (INR)</th>
+                      <th>Total Cost (INR)</th>
+                      <th>Notes</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {editableData.materials_and_labour_breakdown.map((material, index) => (
+                      <tr key={index}>
+                        <td>{material.item}</td>
+                        <td>{material.unit}</td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            value={material.quantity}
+                            onChange={(e) => handleInputChange(index, 'quantity', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            value={material.rate_in_inr}
+                            onChange={(e) => handleInputChange(index, 'rate_in_inr', e.target.value)}
+                          />
+                        </td>
+                        <td>₹ {material.total_cost_in_inr.toLocaleString()}</td>
+                        <td>
+                          <Form.Control
+                            type="text"
+                            size="sm"
+                            value={material.notes}
+                            onChange={(e) => handleInputChange(index, 'notes', e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
             </Accordion.Body>
           </Accordion.Item>
 
@@ -119,16 +126,18 @@ const EstimatorSummary = ({ recievedDraftEstimation }) => {
           <Accordion.Item eventKey="2">
             <Accordion.Header>Thumb Rules Applied</Accordion.Header>
             <Accordion.Body>
-              <Table bordered hover className="mb-0">
-                <tbody>
-                  {Object.entries(editableData.thumb_rules_applied).map(([key, value]) => (
-                    <tr key={key}>
-                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
-                      <td>{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              <div className="table-responsive">
+                <Table bordered hover className="mb-0">
+                  <tbody>
+                    {Object.entries(editableData.thumb_rules_applied).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                        <td>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
             </Accordion.Body>
           </Accordion.Item>
 
@@ -136,23 +145,25 @@ const EstimatorSummary = ({ recievedDraftEstimation }) => {
           <Accordion.Item eventKey="3">
             <Accordion.Header>Financial Summary</Accordion.Header>
             <Accordion.Body>
-              <Table bordered hover className="mb-0">
-                <tbody>
-                  {Object.entries(editableData.financial_summary).map(([key, value]) => (
-                    <tr key={key}>
-                      <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
-                      <td>₹ {value.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              <div className="table-responsive">
+                <Table bordered hover className="mb-0">
+                  <tbody>
+                    {Object.entries(editableData.financial_summary).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="fw-semibold">{key.replace(/_/g, ' ').toUpperCase()}</td>
+                        <td>₹ {value.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
 
         {/* Save Button */}
-        <div className="text-end mt-4">
-          <Button variant="success" onClick={handleSave}>
+        <div className="text-center text-md-end mt-4">
+          <Button variant="success" onClick={handleSave} className="w-100 w-md-auto">
             Save Changes
           </Button>
         </div>

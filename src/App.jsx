@@ -49,22 +49,22 @@ export default function App() {
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-column">
       {/* Header Section */}
-      <header className="bg-primary text-white py-3">
+      <header className="bg-primary text-white py-2 py-md-3">
         <Container>
-          <Row className="align-items-center">
-            <Col xs="auto">
+          <Row className="align-items-center g-2">
+            <Col xs="auto" className="flex-shrink-0">
               <img
                 src={logo}
                 alt="Builder Bro Logo"
                 className="app-logo"
-                style={{ height: '50px', marginRight: '10px' }}
+                style={{ height: '40px', width: 'auto' }}
               />
             </Col>
-            <Col>
-              <h1 className="mb-0 fw-bold">Builder Bro</h1>
-              <p className="mb-0 small">Your trusted construction cost estimator</p>
+            <Col className="flex-grow-1 min-w-0">
+              <h1 className="mb-0 fw-bold fs-5 fs-md-4">Builder Bro</h1>
+              <p className="mb-0 small d-none d-sm-block">Your trusted construction cost estimator</p>
             </Col>
-            <Col xs="auto">
+            <Col xs="auto" className="flex-shrink-0">
               {/* Login/Profile Section */}
               {isLoggedIn ? (
                 <Dropdown align="end">
@@ -72,10 +72,11 @@ export default function App() {
                     <img
                       src={user.profilePhoto}
                       alt="Profile"
-                      className="rounded-circle"
-                      style={{ height: '40px', width: '40px', marginRight: '10px' }}
+                      className="rounded-circle d-none d-sm-inline-block"
+                      style={{ height: '35px', width: '35px', marginRight: '8px' }}
                     />
-                    <span className="text-white">{user.name}</span>
+                    <span className="text-white d-none d-md-inline">{user.name}</span>
+                    <span className="text-white d-md-none">Menu</span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
@@ -83,7 +84,12 @@ export default function App() {
                   </Dropdown.Menu>
                 </Dropdown>
               ) : (
-                <Button variant="outline-light" onClick={handleLogin}>
+                <Button variant="outline-light" size="sm" className="d-md-none" onClick={handleLogin}>
+                  Login
+                </Button>
+              )}
+              {!isLoggedIn && (
+                <Button variant="outline-light" className="d-none d-md-inline-block" onClick={handleLogin}>
                   Login
                 </Button>
               )}
@@ -134,13 +140,13 @@ export default function App() {
       {/* Footer Section */}
       <footer className="bg-dark text-white py-3">
         <Container>
-          <Row className="align-items-center">
-            <Col>
-              <p className="mb-0 small">
+          <Row className="align-items-center text-center text-md-start">
+            <Col xs={12} md>
+              <p className="mb-1 mb-md-0 small">
                 &copy; {new Date().getFullYear()} Builder Bro. All rights reserved.
               </p>
             </Col>
-            <Col xs="auto">
+            <Col xs={12} md="auto">
               <p className="mb-0 small">Powered by Aril Ventures</p>
             </Col>
           </Row>

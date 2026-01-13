@@ -30,7 +30,7 @@ export default function ProjectInfoCard({ project }) {
     <Card className="shadow-sm border-0 overflow-hidden mb-4">
       <Row className="g-0 align-items-center">
         {/* Left Image Section */}
-        <Col md={4}>
+        <Col xs={12} md={4}>
           <div
             className="h-100"
             style={{
@@ -43,30 +43,30 @@ export default function ProjectInfoCard({ project }) {
         </Col>
 
         {/* Right Info Section */}
-        <Col md={8}>
-          <Card.Body className="p-4">
-            <div className="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <h4 className="mb-0 fw-bold">{p.projectType}</h4>
+        <Col xs={12} md={8}>
+          <Card.Body className="p-3 p-md-4">
+            <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+              <div className="flex-grow-1">
+                <h4 className="mb-0 fw-bold fs-5 fs-md-4">{p.projectType}</h4>
                 <div className="text-muted small">
                   Estimated Build Details
                 </div>
               </div>
-              <Badge bg="primary" className="fs-6">
+              <Badge bg="primary" className="fs-6 flex-shrink-0">
                 {p.area} sqft
               </Badge>
             </div>
 
-            <Row className="text-center mt-3">
-              <Col>
+            <Row className="text-center mt-3 g-2">
+              <Col xs={4}>
                 <h6 className="fw-semibold mb-0">{p.floors}</h6>
                 <div className="text-muted small">Floor(s)</div>
               </Col>
-              <Col>
+              <Col xs={4}>
                 <h6 className="fw-semibold mb-0">{p.bedrooms}</h6>
                 <div className="text-muted small">Bedroom(s)</div>
               </Col>
-              <Col>
+              <Col xs={4}>
                 <h6 className="fw-semibold mb-0">{p.bathrooms}</h6>
                 <div className="text-muted small">Bathroom(s)</div>
               </Col>

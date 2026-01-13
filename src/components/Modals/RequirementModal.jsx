@@ -45,7 +45,14 @@ const RequirementModal = (props) => {
   }
 
   return (
-    <Modal show={showModal} onHide={hideModal} centered dialogClassName="modal-dialog-centered">
+    <Modal 
+      show={showModal} 
+      onHide={hideModal} 
+      centered 
+      dialogClassName="modal-dialog-centered"
+      fullscreen="sm-down"
+      size="lg"
+    >
       <Modal.Header closeButton>
         <Modal.Title className="d-flex align-items-center gap-2">
           <i className="bi bi-clipboard-check text-primary"></i>

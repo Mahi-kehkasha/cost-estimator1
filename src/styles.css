@@ -16,4 +16,70 @@
   padding-top: .75rem;
 }
 
+/* Responsive Utilities */
+/* Global mobile-first adjustments to tighten spacing and prevent overflow */
+html, body {
+  width: 100%;
+  overflow-x: hidden; /* avoid horizontal scroll on small screens */
+}
+
+@media (max-width: 575.98px) {
+  /* Mobile-specific styles */
+  .table-responsive {
+    font-size: 0.875rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modal-dialog {
+    margin: 0.5rem; /* reduce modal gutter on small screens */
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .card-body {
+    padding: 0.75rem 1rem; /* tighter padding to reclaim space on mobile */
+  }
+
+  .container,
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem; /* limit side padding to avoid horizontal scroll */
+  }
+  
+  h1, h2, h3 {
+    word-wrap: break-word;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Tablet-specific styles */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Ensure images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent text overflow */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive buttons */
+@media (max-width: 575.98px) {
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
 

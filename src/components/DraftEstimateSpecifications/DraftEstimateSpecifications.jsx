@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Button, Spinner, Container, Card, Table } from 'react-bootstrap';
-import OpenAI from 'openai';
-import base64 from 'base-64';
-import { Chat } from 'openai/resources/index';
+import { Row, Col, Button, Spinner, Container, Card } from 'react-bootstrap';
 import ChatGPTResponse from '../ChatGPTResponse/ChatGPTResponse';
 import ChatGPTInputSummary from '../ChatGPTInputSummary/ChatGPTInputSummary';
 
 const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) => {
   const [chatgptRes, setChatGptResp] = useState(null);
   const [fetchingDetails, setFetchingDetails] = useState(true);
+  const [error, setError] = useState(null);
   const hasFetched = useRef(false);
 
-  const promptData = {
-    prompt: {
+  // Backend API base URL – for local dev this will default to localhost,
+  // for production set VITE_API_BASE_URL in your environment (e.g. Vercel).
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  const aiPrompt = {
       "id": "pmpt_68fa258429388190915466521773cbfb0031ef9bf4dd0f6d",
       "version": "28",
       "variables": {
@@ -30,7 +31,9 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
         "tax_percent": "10",
         "drawing_rooms": "1"
       }
-    },
+  }
+  const promptData = {
+    prompt: aiPrompt,
     "text": {
       "format": {
         "type": "json_schema",
@@ -283,121 +286,103 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
 
   useEffect(() => {
     if (!hasFetched.current) {
-      hasFetched.current = true; 
-      getDataFromChatGPT();
+      hasFetched.current = true;
+      getDataFromBackend();
     }
-    // getHouseImage();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+  // Function to fetch data from backend (which in turn calls ChatGPT and caches)
+  async function getDataFromBackend() {
+    setError(null);
+    setFetchingDetails(true);
 
-  if (!OPENAI_API_KEY) {
-    console.error('OpenAI API key is missing. Please check your .env file.');
-  };
-
-  const client = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-    dangerouslyAllowBrowser: true,
-  });
-
-  // Function to fetch data from ChatGPT
-  async function getDataFromChatGPT() {
     try {
-      const response = await client.responses.parse(promptData);
-      setChatGptResp(response.output_parsed);
-    } catch (error) {
-      console.error('Error fetching data from ChatGPT:', error);
-      setChatGptResp('Failed to fetch data. Please try again.');
+      const response = await fetch(`${API_BASE_URL}/api/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputJson: promptData }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Backend error (${response.status}): ${text}`);
+      }
+
+      const data = await response.json();
+      const output = data.outputJson || data;
+
+      if (
+        !output ||
+        typeof output !== 'object' ||
+        !Array.isArray(output.materials_and_labour_breakdown)
+      ) {
+        throw new Error('Unexpected response format from backend');
+      }
+
+      setChatGptResp(output);
+    } catch (err) {
+      console.error('Error fetching data from backend ChatGPT API:', err);
+      setError(err.message || 'Failed to fetch data. Please try again.');
+      setChatGptResp(null);
     } finally {
       setFetchingDetails(false);
     }
   }
 
-  /*async function getHouseImage() {
-    setFetchingDetails(true);
-
-    const response = await client.responses.create({
-      prompt: {
-        "id": "pmpt_68fa5b5b68bc819482398043645f566807955c38d097999d",
-        "version": "14",
-        "variables": {
-          "rooms": "1",
-          "floor": "1"
-        }
-      },
-    });
-
-    // Save the image to a file
-    const imageData = response.output
-      .filter((output) => output.type === "image_generation_call")
-      .map((output) => output.result);
-
-    if (imageData.length > 0) {
-      const imageBase64 = imageData[0];
-      console.log("Image Base64:", imageBase64);
-      // const fs = await import("fs");
-      // fs.writeFileSync("cat_and_otter.png", Buffer.from(imageBase64, "base64"));
-    }
-    console.log(response);
-    setFetchingDetails(false);
-
-  }*/
-
   return (
-    <Container className="py-4">
-      <Row>
-        <Col xs={12} className="mb-4">
+    <Container className="py-3 py-md-4">
+      <Row className="g-3">
+        <Col xs={12} className="mb-3 mb-md-4">
           {/* Project Details */}
-          <Row>
-            <Col xs={12}>
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <ChatGPTInputSummary project={selectedProjDetails} />
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+          <Card className="shadow-sm">
+            <Card.Body className="p-3 p-md-4">
+              <ChatGPTInputSummary project={selectedProjDetails} />
+            </Card.Body>
+          </Card>
         </Col>
-        <Col xs={12} className="mb-4">
+        <Col xs={12} className="mb-3 mb-md-4">
           {/* Header */}
-          <Row className="mb-4">
-            <Col xs={12}>
-              <Card className="shadow-sm">
-                <Card.Body>
+          <Card className="shadow-sm">
+            <Card.Body className="p-3 p-md-4">
+              {fetchingDetails && (
+                <Row className="mb-4">
+                  <Col xs={12} className="text-center">
+                    <Spinner animation="border" role="status">
+                      <span className="visually-hidden">Fetching Details...</span>
+                    </Spinner>
+                  </Col>
+                </Row>
+              )}
 
-                  <Container className="shadow-sm">
-                    {fetchingDetails && (
-                      <Row className="mb-4">
-                        <Col xs={12} className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Fetching Details...</span>
-                          </Spinner>
-                        </Col>
-                      </Row>
-                    )}
+              {error && !fetchingDetails && (
+                <div className="text-danger small mb-3">
+                  Failed to fetch estimate: {error}
+                </div>
+              )}
 
-                    {chatgptRes && !fetchingDetails && (
-                      <Row className="mb-4">
-                        <Col xs={12}>
-                          <Card className="shadow-sm">
-                            <Card.Body>
-                              <Container className="fs-5 text-success">
-                                <ChatGPTResponse data={chatgptRes} />
-                              </Container>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      </Row>
-                    )}
-                  </Container>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+              {chatgptRes && !fetchingDetails && !error && (
+                <div className="fs-6 fs-md-5 text-success">
+                  <ChatGPTResponse data={chatgptRes} />
+                </div>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
-      <Row>
-        <Button variant="primary" onClick={()=>goToReviewDraft(chatgptRes)}>Next</Button>
+      <Row className="mt-3">
+        <Col xs={12} className="d-flex justify-content-end">
+          <Button
+            variant="primary"
+            onClick={() => goToReviewDraft(chatgptRes)}
+            className="w-100 w-md-auto"
+            disabled={fetchingDetails || !!error || !chatgptRes}
+          >
+            Next
+          </Button>
+        </Col>
       </Row>
     </Container >
   );

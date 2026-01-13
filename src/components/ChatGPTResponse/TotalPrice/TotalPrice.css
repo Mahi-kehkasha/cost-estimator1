@@ -17,3 +17,18 @@
   .total-price-card .text-success {
     font-size: 1.2rem;
   }
+
+  /* Responsive Styles */
+  @media (max-width: 575.98px) {
+    .total-price-card table {
+      font-size: 0.875rem;
+    }
+    
+    .total-price-card .text-success {
+      font-size: 1rem;
+    }
+    
+    .total-price-card td {
+      padding: 0.5rem;
+    }
+  }
