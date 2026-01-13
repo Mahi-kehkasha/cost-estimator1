@@ -4,7 +4,6 @@ import { Accordion, Card, Table, Form, Button, Row, Col } from 'react-bootstrap'
 const EstimatorSummary = ({ recievedDraftEstimation }) => {
   const [editableData, setEditableData] = useState(recievedDraftEstimation);
 
-  // Recalculate financial summary when materials and labour breakdown changes
   useEffect(() => {
     const updatedData = { ...editableData };
     const totalSubCost = updatedData.materials_and_labour_breakdown.reduce(

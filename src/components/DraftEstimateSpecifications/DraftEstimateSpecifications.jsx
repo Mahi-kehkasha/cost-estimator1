@@ -292,10 +292,29 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Function to fetch data from backend (which in turn calls ChatGPT and caches)
-  async function getDataFromBackend() {
-    setError(null);
-    setFetchingDetails(true);
+  const OPENAI_API_KEY = import.meta.env.VITE_API_KEY;
+
+  
+  // const OPENAI_API_KEY2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+ 
+
+  if (!OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY2 API key is missing. Please check your .env file.');
+  };
+
+  // Use the variable
+  if (OPENAI_API_KEY) {
+    console.log(`API URL is: ${OPENAI_API_KEY}`);
+  }
+
+  if (!OPENAI_API_KEY) {
+    console.error('OpenAI API key is missing. Please check your .env file.');
+  };
+
+  const client = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/process`, {
@@ -305,32 +324,6 @@ const DraftEstimateSpecifications = ({ selectedProjDetails, goToReviewDraft }) =
         },
         body: JSON.stringify({ inputJson: promptData }),
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Backend error (${response.status}): ${text}`);
-      }
-
-      const data = await response.json();
-      const output = data.outputJson || data;
-
-      if (
-        !output ||
-        typeof output !== 'object' ||
-        !Array.isArray(output.materials_and_labour_breakdown)
-      ) {
-        throw new Error('Unexpected response format from backend');
-      }
-
-      setChatGptResp(output);
-    } catch (err) {
-      console.error('Error fetching data from backend ChatGPT API:', err);
-      setError(err.message || 'Failed to fetch data. Please try again.');
-      setChatGptResp(null);
-    } finally {
-      setFetchingDetails(false);
-    }
-  }
 
   return (
     <Container className="py-3 py-md-4">
