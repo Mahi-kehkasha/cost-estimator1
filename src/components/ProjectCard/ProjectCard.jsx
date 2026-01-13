@@ -3,7 +3,7 @@ import { Card, Col } from 'react-bootstrap';
 import styles from './styles/ProjectCard.module.css';
 
 const ProjectCard = ({ project, onClick }) => (
-  <Col md={4} lg={4}>
+  <Col xs={12} sm={6} md={4} lg={4}>
     <Card
       className={`h-100 shadow-sm rounded p-3 border ${styles.cardHover} ${
         project.show ? styles.cursorPointer : styles.disabledCard

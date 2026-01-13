@@ -38,6 +38,7 @@ A professional construction cost estimation tool built with React and Bootstrap 
 ### Prerequisites
 - Node.js (version 14 or higher)
 - npm or yarn package manager
+- MongoDB (local installation or MongoDB Atlas account) - for backend API
 
 ### Installation
 
@@ -59,6 +60,112 @@ A professional construction cost estimation tool built with React and Bootstrap 
 
 4. **Open your browser**
    Navigate to `http://localhost:5173` to view the application
+
+### Backend API Setup
+
+The project includes a backend API for caching ChatGPT API responses. To set it up:
+
+1. **Install backend dependencies** (already included in main `npm install`)
+2. **Configure MongoDB and OpenAI**:
+   - Create a `.env` file in the project root
+   - Add your MongoDB connection string and OpenAI API key:
+     ```env
+     MONGODB_URI=mongodb://localhost:27017/cache-api
+     PORT=3000
+     NODE_ENV=development
+     OPENAI_API_KEY=your_openai_api_key_here
+     ```
+3. **Start the backend server**:
+   ```bash
+   npm run server
+   ```
+   
+   For development with auto-reload:
+   ```bash
+   npm run server:dev
+   ```
+
+4. **Test the API**:
+   ```bash
+   curl -X POST http://localhost:3000/api/process \
+     -H "Content-Type: application/json" \
+     -d '{"inputJson": {"test": "data"}}'
+   ```
+
+See `server/README.md` and `server/QUICKSTART.md` for detailed API documentation.
+
+## Caching Strategy
+
+To avoid unnecessary calls to the ChatGPT API, this backend uses MongoDB as a cache layer.
+
+### How It Works
+
+1. **Input Normalization**: Each input JSON is normalized to ensure consistent hashing, regardless of:
+   - Key order in objects
+   - Whitespace differences
+   - Undefined values
+
+2. **Hash-Based Lookup**: The normalized input is hashed using SHA-256, and this hash is used as a unique identifier in MongoDB for fast duplicate detection.
+
+3. **Cache Hit**: If a record exists with the same hash:
+   - The stored `outputJson` is returned immediately
+   - **No ChatGPT API call is made**
+   - Access statistics are updated
+
+4. **Cache Miss**: If no record exists:
+   - ChatGPT API is called with the input
+   - Both `inputJson` (normalized) and `outputJson` are saved as strings in MongoDB
+   - The response is returned to the client
+
+### Benefits
+
+- **Cost Reduction**: Avoids redundant API calls for identical inputs
+- **Latency Improvement**: Cached responses return instantly
+- **Scalability**: Hash-based lookup is O(1) with proper indexing
+- **Data Integrity**: Normalization ensures consistent matching
+
+### API Endpoint
+
+**POST `/api/process`**
+
+Request:
+```json
+{
+  "inputJson": {
+    "prompt": {
+      "id": "pmpt_...",
+      "version": "28",
+      "variables": { ... }
+    },
+    "text": { ... }
+  }
+}
+```
+
+Response (Cached):
+```json
+{
+  "cached": true,
+  "outputJson": { ... },
+  "metadata": {
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "lastAccessedAt": "2024-01-15T11:00:00.000Z",
+    "accessCount": 5
+  }
+}
+```
+
+Response (New):
+```json
+{
+  "cached": false,
+  "outputJson": { ... },
+  "metadata": {
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "accessCount": 0
+  }
+}
+```
 
 ### Build for Production
 
@@ -144,6 +251,8 @@ Click on any project card to open the requirements modal:
 - **UI Framework**: Bootstrap 5.3.3
 - **Icons**: Bootstrap Icons 1.11.3
 - **Build Tool**: Vite 5.4.3
+- **Backend**: Node.js, Express 4.18.2
+- **Database**: MongoDB with Mongoose 8.0.3
 - **Package Manager**: npm
 
 ### Project Structure

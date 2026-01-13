@@ -19,6 +19,10 @@ logs/
 .env.local
 .env.*.local
 
+# Test scripts
+test-mongodb-connection.js
+update-mongodb-password.js
+
 # IDE files
 .vscode/
 .idea/

@@ -3,13 +3,17 @@ import { Container, Row, Col, Card, Accordion, Table, Button, Badge, Form, Input
 import TotalPrice from "./TotalPrice/TotalPrice";
 
 export default function EstimatorViewerBootstrapSampleData({ data: initialData }) {
-  const [estimation, setEstimation] = useState(initialData);
+  const [estimation, setEstimation] = useState(initialData || {});
   const [query, setQuery] = useState("");
   const [expandedIndex, setExpandedIndex] = useState(null);
 
   const formatINR = (v) => (typeof v === 'number' ? `₹${v.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` : v);
 
-  const filtered = estimation.materials_and_labour_breakdown.filter((m) =>
+  const materials = Array.isArray(estimation.materials_and_labour_breakdown)
+    ? estimation.materials_and_labour_breakdown
+    : [];
+
+  const filtered = materials.filter((m) =>
     m.item.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -47,58 +51,61 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
 
   return (
     <Container className="py-4">
-      <Row className="mb-3 align-items-center">
-        <Col>
-          <h3 className="mb-0">Material and Labour Estimation</h3>
+      <Row className="mb-3 align-items-center g-2">
+        <Col xs={12} md>
+          <h3 className="mb-0 fs-5 fs-md-4">Material and Labour Estimation</h3>
         </Col>
-        <Col xs="auto">
-          <Button
-            variant="outline-primary"
-            className="me-2"
-            onClick={() => {
-              navigator.clipboard.writeText(JSON.stringify(estimation, null, 2));
-              alert("JSON copied to clipboard");
-            }}
-          >
-            Copy JSON
-          </Button>
-          <Button variant="success" className="me-2" onClick={downloadJSON}>
-            Download JSON
-          </Button>
-          <Button variant="outline-success" onClick={downloadCSV}>
-            Download CSV
-          </Button>
+        <Col xs={12} md="auto">
+          <div className="d-flex flex-wrap gap-2">
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(estimation, null, 2));
+                alert("JSON copied to clipboard");
+              }}
+            >
+              Copy JSON
+            </Button>
+            <Button variant="success" size="sm" onClick={downloadJSON}>
+              Download JSON
+            </Button>
+            <Button variant="outline-success" size="sm" onClick={downloadCSV}>
+              Download CSV
+            </Button>
+          </div>
         </Col>
       </Row>
 
-      <Row className="mb-3">
-        <Col md={4}>
+      <Row className="mb-3 g-3">
+        <Col xs={12} md={4}>
           {/* Financial Summary */}
           <TotalPrice financial_summary={estimation.financial_summary} />
 
           {/* Quick Filters */}
           <Card className="shadow-sm">
             <Card.Body>
-              <Card.Title>Quick Filters</Card.Title>
+              <Card.Title className="fs-6">Quick Filters</Card.Title>
               <InputGroup className="mb-2">
                 <Form.Control
                   placeholder="Search item (e.g., brick)"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  size="sm"
                 />
-                <Button variant="outline-secondary" onClick={() => setQuery("")}>
+                <Button variant="outline-secondary" size="sm" onClick={() => setQuery("")}>
                   Clear
                 </Button>
               </InputGroup>
               <div className="d-flex flex-wrap gap-2">
-                <Badge bg="secondary">{estimation.materials_and_labour_breakdown.length} items</Badge>
+                <Badge bg="secondary">{materials.length} items</Badge>
                 <Badge bg="info">Materials only</Badge>
               </div>
             </Card.Body>
           </Card>
         </Col>
 
-        <Col md={8}>
+        <Col xs={12} md={8}>
           <Accordion defaultActiveKey="0">
             {JSON.stringify(filtered) === "[]" && (
               <div className="text-center text-muted">No items match your search.</div>
@@ -124,9 +131,10 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
                   </div>
                 </Accordion.Header>
                 <Accordion.Body>
-                  <Row>
-                    <Col md={8}>
-                      <Table borderless size="sm">
+                  <Row className="g-3">
+                    <Col xs={12} md={8}>
+                      <div className="table-responsive">
+                        <Table borderless size="sm" className="mb-0">
                         <tbody>
                           <tr>
                             <td className="text-muted">Item</td>
@@ -152,12 +160,14 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
                           </tr>
                         </tbody>
                       </Table>
+                      </div>
                     </Col>
-                    <Col md={4} className="d-flex flex-column justify-content-between">
+                    <Col xs={12} md={4} className="d-flex flex-column justify-content-between">
                       <div>
                         <Button
                           variant="outline-primary"
                           className="w-100 mb-2"
+                          size="sm"
                           onClick={() => {
                             navigator.clipboard.writeText(JSON.stringify(m, null, 2));
                             alert("Item JSON copied");
@@ -168,6 +178,7 @@ export default function EstimatorViewerBootstrapSampleData({ data: initialData }
                         <Button
                           variant="outline-secondary"
                           className="w-100"
+                          size="sm"
                           onClick={() => {
                             // download single item CSV
                             const csv = `"Item","Unit","Quantity","Rate","Total","Notes"\n"${m.item}","${m.unit}","${m.quantity}","${m.rate_in_inr}","${m.total_cost_in_inr}","${m.notes}"`;
